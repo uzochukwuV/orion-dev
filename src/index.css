@@ -1,0 +1,131 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700&family=Inter:wght@500;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 96.1%;
+    --foreground: 0 0% 12.5%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 12.5%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 12.5%;
+    --primary: 240 93% 65%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 0% 20%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 0 0% 96.1%;
+    --muted-foreground: 0 0% 20%;
+    --accent: 240 93% 65%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 248 100% 98%;
+    --input: 248 100% 98%;
+    --ring: 240 93% 65%;
+    --radius: 0.5rem;
+
+    /* Brand tokens */
+    --color-midnight-ink: #202020;
+    --color-cloud-canvas: #f5f5f5;
+    --color-paper-white: #ffffff;
+    --color-muted-ash: #333333;
+    --color-ghost-border: #f7f5fd;
+    --color-electric-violet: #5757f8;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-[#f5f5f5] text-[#202020] font-inter;
+  }
+
+  h1, h2, h3, h4 {
+    font-family: 'Montserrat', sans-serif;
+    letter-spacing: -0.02em;
+  }
+}
+
+.font-montserrat {
+  font-family: 'Montserrat', sans-serif;
+  letter-spacing: -0.02em;
+}
+
+.font-inter {
+  font-family: 'Inter', sans-serif;
+}
+
+/* Pill buttons */
+.btn-primary {
+  background: #5757f8;
+  color: #ffffff;
+  border-radius: 9999px;
+  padding: 10px 20px;
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  font-size: 16px;
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+.btn-primary:hover { opacity: 0.9; }
+
+.btn-secondary {
+  background: #202020;
+  color: #ffffff;
+  border-radius: 9999px;
+  padding: 10px 20px;
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  font-size: 16px;
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+.btn-secondary:hover { opacity: 0.85; }
+
+/* Card */
+.card-orion {
+  background: #f5f5f5;
+  border-radius: 8px;
+  padding: 20px;
+  border: 1px solid #f7f5fd;
+}
+
+/* Elevated card */
+.card-elevated {
+  background: #ffffff;
+  border-radius: 8px;
+  padding: 20px;
+  border: 1px solid #f7f5fd;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: #f5f5f5; }
+::-webkit-scrollbar-thumb { background: #e0e0e0; border-radius: 4px; }
+
+/* Marquee animation */
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+/* Voice pulse animation */
+@keyframes voice-pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.15); opacity: 0.8; }
+}
+.voice-pulse { animation: voice-pulse 1.2s ease-in-out infinite; }
+
+/* Dot grid background */
+.dot-grid {
+  background-image: radial-gradient(circle, #d0d0d0 1px, transparent 1px);
+  background-size: 24px 24px;
+}

@@ -1,0 +1,73 @@
+{
+  "name": "SocialPost",
+  "type": "object",
+  "properties": {
+    "business_id": {
+      "type": "string"
+    },
+    "platform": {
+      "type": "string",
+      "enum": [
+        "instagram",
+        "facebook",
+        "google_business",
+        "twitter"
+      ]
+    },
+    "content": {
+      "type": "string"
+    },
+    "hashtags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "image_url": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "pending_approval",
+        "scheduled",
+        "published",
+        "failed"
+      ],
+      "default": "draft"
+    },
+    "scheduled_for": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "published_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "likes": {
+      "type": "number",
+      "default": 0
+    },
+    "comments": {
+      "type": "number",
+      "default": 0
+    },
+    "reach": {
+      "type": "number",
+      "default": 0
+    },
+    "ai_generated": {
+      "type": "boolean",
+      "default": true
+    },
+    "topic": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "business_id",
+    "platform",
+    "content"
+  ]
+}

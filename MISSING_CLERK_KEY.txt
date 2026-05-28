@@ -1,0 +1,58 @@
+================================================================================
+                    ⚠️ MISSING CLERK API KEY - QUICK FIX
+================================================================================
+
+You're seeing this error because the Clerk publishable key is not configured.
+
+ERROR:
+  @clerk/clerk-react: Missing publishableKey
+
+FIX (30 seconds):
+  
+  1. Create file: src/.env.local
+  
+  2. Add this line:
+     VITE_CLERK_PUBLISHABLE_KEY=pk_test_xxxxxxxxxxxxx
+  
+  3. Get your key from: https://dashboard.clerk.com/api-keys
+  
+  4. Restart: npm run dev
+
+================================================================================
+                        HOW TO GET YOUR KEY
+================================================================================
+
+Step 1: Go to https://clerk.com
+Step 2: Sign up (if not already)
+Step 3: Create application named "Orion"
+Step 4: Go to API Keys section
+Step 5: Copy "Publishable Key" (starts with pk_test_)
+Step 6: Paste into src/.env.local
+
+================================================================================
+                        FULL SETUP (if not done yet)
+================================================================================
+
+FRONTEND (.env.local):
+  VITE_CLERK_PUBLISHABLE_KEY=pk_test_xxxxxxxxxxxxx
+
+BACKEND (.env):
+  CLERK_SECRET_KEY=sk_test_xxxxxxxxxxxxx
+  CLERK_WEBHOOK_SECRET=whsec_xxxxxxxxxxxxx
+
+Then:
+  1. Restart: npm run dev (frontend)
+  2. Restart: npm run dev (backend)
+  3. Go to http://localhost:5173/signup
+
+================================================================================
+                        NEED HELP?
+================================================================================
+
+Read: CLERK_FINAL_CHECKLIST.txt (step-by-step guide)
+
+Video: https://clerk.com/docs/quickstarts/react
+
+Questions? Check backend logs and browser console.
+
+================================================================================

@@ -1,0 +1,66 @@
+{
+  "name": "AgentRun",
+  "type": "object",
+  "properties": {
+    "business_id": {
+      "type": "string"
+    },
+    "agent_type": {
+      "type": "string",
+      "enum": [
+        "market_intelligence",
+        "marketing",
+        "sales",
+        "social_media",
+        "voice_chat",
+        "orchestrator"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "running",
+        "completed",
+        "failed",
+        "cancelled"
+      ],
+      "default": "running"
+    },
+    "trigger": {
+      "type": "string",
+      "enum": [
+        "manual",
+        "scheduled",
+        "voice",
+        "chat",
+        "webhook"
+      ],
+      "default": "manual"
+    },
+    "input_summary": {
+      "type": "string"
+    },
+    "output_summary": {
+      "type": "string"
+    },
+    "actions_taken": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "duration_seconds": {
+      "type": "number"
+    },
+    "tokens_used": {
+      "type": "number"
+    },
+    "error_message": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "business_id",
+    "agent_type"
+  ]
+}

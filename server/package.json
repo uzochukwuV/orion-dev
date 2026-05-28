@@ -1,0 +1,42 @@
+{
+  "name": "server",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "npx tsx --test src/**/*.test.ts",
+    "dev": "tsx watch src/index.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "@clerk/backend": "^3.4.14",
+    "@langchain/core": "^0.3.43",
+    "@langchain/google-genai": "^0.1.8",
+    "@langchain/mcp-adapters": "^0.6.0",
+    "@langchain/openai": "^0.3.16",
+    "@modelcontextprotocol/sdk": "^1.12.1",
+    "@speechmatics/real-time-client": "^8.3.2",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^4.22.2",
+    "express-async-errors": "^3.1.1",
+    "helmet": "^8.2.0",
+    "langchain": "^0.3.27",
+    "mongoose": "^9.6.3",
+    "morgan": "^1.10.1",
+    "svix": "^1.94.0",
+    "ws": "^8.21.0"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/morgan": "^1.9.10",
+    "@types/node": "^25.9.1",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.22.3",
+    "typescript": "^6.0.3"
+  }
+}

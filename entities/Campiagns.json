@@ -1,0 +1,90 @@
+{
+  "name": "Campaign",
+  "type": "object",
+  "properties": {
+    "business_id": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "email",
+        "sms",
+        "google_ads",
+        "facebook_ads",
+        "instagram",
+        "promotion"
+      ],
+      "description": "Campaign channel type"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "pending_review",
+        "active",
+        "paused",
+        "completed",
+        "cancelled"
+      ],
+      "default": "draft"
+    },
+    "objective": {
+      "type": "string"
+    },
+    "target_audience": {
+      "type": "string"
+    },
+    "headline": {
+      "type": "string"
+    },
+    "body_copy": {
+      "type": "string"
+    },
+    "cta": {
+      "type": "string"
+    },
+    "budget": {
+      "type": "number"
+    },
+    "start_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "end_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "impressions": {
+      "type": "number",
+      "default": 0
+    },
+    "clicks": {
+      "type": "number",
+      "default": 0
+    },
+    "conversions": {
+      "type": "number",
+      "default": 0
+    },
+    "revenue_attributed": {
+      "type": "number",
+      "default": 0
+    },
+    "ai_generated": {
+      "type": "boolean",
+      "default": false
+    },
+    "opportunity_id": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "business_id",
+    "name",
+    "type"
+  ]
+}

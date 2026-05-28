@@ -1,0 +1,75 @@
+{
+  "name": "Lead",
+  "type": "object",
+  "properties": {
+    "business_id": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "email": {
+      "type": "string"
+    },
+    "phone": {
+      "type": "string"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "website_form",
+        "phone_call",
+        "social_dm",
+        "referral",
+        "google",
+        "facebook",
+        "walk_in",
+        "other"
+      ]
+    },
+    "service_interest": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "new",
+        "contacted",
+        "qualified",
+        "proposal_sent",
+        "won",
+        "lost"
+      ],
+      "default": "new"
+    },
+    "ai_score": {
+      "type": "number",
+      "description": "AI lead quality score 0-100"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "last_contacted": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "follow_up_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "value_estimate": {
+      "type": "number"
+    },
+    "ai_followup_sent": {
+      "type": "boolean",
+      "default": false
+    },
+    "campaign_id": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "business_id",
+    "name"
+  ]
+}

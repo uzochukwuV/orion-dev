@@ -1,0 +1,104 @@
+================================================================================
+                    ✅ CLERK AUTH SETUP - QUICK START
+================================================================================
+
+You're almost there! Just 3 more steps to get auth working.
+
+Current Status:
+  ✅ All code written and installed
+  ✅ Frontend pages ready (Login, Signup)
+  ✅ Backend webhook ready
+  ✅ Protected routes ready
+  ❌ Missing: Clerk API key in .env
+
+================================================================================
+                        STEP 1: CREATE CLERK ACCOUNT (5 min)
+================================================================================
+
+1. Go to: https://clerk.com
+2. Click "Sign Up" 
+3. Create account with your email
+4. Verify email
+5. Create new app: Name = "Orion"
+6. Wait for dashboard to load
+
+================================================================================
+                        STEP 2: GET YOUR KEYS (2 min)
+================================================================================
+
+In Clerk Dashboard:
+  1. Left sidebar → "API Keys"
+  2. Copy: Publishable Key (starts with pk_test_)
+  3. Copy: Secret Key (starts with sk_test_)
+
+Save these! You'll need them next.
+
+================================================================================
+                        STEP 3: ADD TO .env (2 min)
+================================================================================
+
+Frontend (CREATE file: src/.env.local):
+  VITE_CLERK_PUBLISHABLE_KEY=pk_test_xxxxxxxxxxxxx
+
+Backend (ADD to existing: server/.env):
+  CLERK_SECRET_KEY=sk_test_xxxxxxxxxxxxx
+
+Save both files.
+
+================================================================================
+                        STEP 4: RESTART & TEST (2 min)
+================================================================================
+
+Terminal 1 (Frontend):
+  cd C:\Users\ASUS FX95G\Documents\python\orion
+  npm run dev
+
+Terminal 2 (Backend):
+  cd C:\Users\ASUS FX95G\Documents\python\orion\server
+  npm run dev
+
+Then:
+  1. Go to http://localhost:5173/signup
+  2. Create account with any email
+  3. Should redirect to onboarding
+  4. ✅ Auth working!
+
+================================================================================
+                        WEBHOOK (Optional, can add later)
+================================================================================
+
+For auto-provisioning (creating Business when user signs up):
+  1. Clerk Dashboard → Webhooks
+  2. Create Endpoint
+  3. URL: http://localhost:3001/api/webhooks/clerk
+  4. Events: user.created, user.updated, user.deleted
+  5. Copy Secret → server/.env: CLERK_WEBHOOK_SECRET=whsec_xxx
+
+Without webhook: Users can sign up but Business won't auto-create.
+With webhook: Everything is automatic!
+
+================================================================================
+                        DONE!
+================================================================================
+
+After you add the API key and restart:
+  ✅ Sign up at /signup
+  ✅ Login at /login
+  ✅ See your dashboard
+  ✅ Create leads (only you see them)
+  ✅ Sign out
+
+Your data is now isolated per user!
+
+Next: Build Wave 10 (Task Scheduler)
+
+================================================================================
+
+Questions? Check:
+  - CLERK_FINAL_CHECKLIST.txt
+  - CLERK_SETUP_COMPLETE.txt
+  - https://dashboard.clerk.com
+
+Ready? Go get your Clerk key! 🚀
+
+================================================================================

@@ -1,0 +1,106 @@
+{
+  "name": "Business",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Business name"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "salon",
+        "gym",
+        "restaurant",
+        "plumber",
+        "electrician",
+        "cleaner",
+        "landscaper",
+        "pet_services",
+        "retail",
+        "other"
+      ],
+      "description": "Type of local service business"
+    },
+    "owner_email": {
+      "type": "string",
+      "description": "Email of the business owner"
+    },
+    "address": {
+      "type": "string"
+    },
+    "city": {
+      "type": "string"
+    },
+    "phone": {
+      "type": "string"
+    },
+    "website": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "plan": {
+      "type": "string",
+      "enum": [
+        "starter",
+        "growth",
+        "pro"
+      ],
+      "default": "starter"
+    },
+    "plan_status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "cancelled",
+        "trialing",
+        "past_due"
+      ],
+      "default": "trialing"
+    },
+    "onboarding_complete": {
+      "type": "boolean",
+      "default": false
+    },
+    "google_business_connected": {
+      "type": "boolean",
+      "default": false
+    },
+    "facebook_connected": {
+      "type": "boolean",
+      "default": false
+    },
+    "instagram_connected": {
+      "type": "boolean",
+      "default": false
+    },
+    "logo_url": {
+      "type": "string"
+    },
+    "target_audience": {
+      "type": "string"
+    },
+    "main_services": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "competitors": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "monthly_revenue_goal": {
+      "type": "number"
+    }
+  },
+  "required": [
+    "name",
+    "type",
+    "owner_email"
+  ]
+}
