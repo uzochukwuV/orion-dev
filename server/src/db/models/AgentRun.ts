@@ -11,6 +11,8 @@ export interface IAgentRun extends Document {
   duration_seconds?: number;
   tokens_used?: number;
   error_message?: string;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 const AgentRunSchema = new Schema<IAgentRun>({

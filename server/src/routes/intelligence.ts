@@ -172,7 +172,7 @@ export function createIntelligenceRoutes(): Router {
       if (business_id) {
         // List scans for business
         const runs = await AgentRunModel.find({
-          business_id,
+          business_id: business_id as string,
           agent_type: 'market_intelligence',
         })
           .sort({ createdAt: -1 })
