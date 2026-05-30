@@ -10,6 +10,7 @@ import { Router, Request, Response, NextFunction } from 'express';
 import { runResearchAgent } from '../agents/index.js';
 import { AgentRunModel } from '../db/models/AgentRun.js';
 import { BusinessModel } from '../db/models/Business.js';
+import { verifyJWT } from '../auth/middleware.js';
 
 export function createIntelligenceRoutes(): Router {
   const router = Router();
@@ -55,7 +56,7 @@ export function createIntelligenceRoutes(): Router {
    *     -H "Content-Type: application/json" \
    *     -d '{"business_id":"demo","focus":"market_trends"}'
    */
-  router.post('/scan', async (req: Request, res: Response, next: NextFunction) => {
+  router.post('/scan', verifyJWT, async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { business_id = 'demo', focus = 'general', competitors = [] } = req.body;
 
