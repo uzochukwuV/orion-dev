@@ -21,7 +21,9 @@
 
 import { WebSocketServer, WebSocket } from 'ws';
 import { Server as HTTPServer } from 'http';
-type RealtimeClientType = any;
+// Speechmatics client - use any since package has no types
+const RealtimeClientType: any = null;
+
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
