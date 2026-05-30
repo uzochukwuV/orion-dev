@@ -1,18 +1,18 @@
 import { useState } from 'react';
 import { ArrowRight, ArrowLeft, Loader2, Building2, MapPin, Briefcase } from 'lucide-react';
-import { base44 } from '@/api/base44Client';
+import { entities } from '@/api/entities';
 
 const categories = [
   { id: 'salon', emoji: '💇', label: 'Hair Salon' },
   { id: 'gym', emoji: '🏋️', label: 'Gym / Fitness' },
   { id: 'restaurant', emoji: '🍽️', label: 'Restaurant' },
-  { id: 'plumber', emoji: '🔧', label: 'Plumber' },
-  { id: 'electrician', emoji: '⚡', label: 'Electrician' },
-  { id: 'cleaner', emoji: '🧹', label: 'Cleaning' },
-  { id: 'landscaper', emoji: '🌿', label: 'Landscaping' },
-  { id: 'pet_services', emoji: '🐾', label: 'Pet Services' },
-  { id: 'retail', emoji: '🛍️', label: 'Retail' },
-  { id: 'other', emoji: '✨', label: 'Other' },
+  { id: 'clinic', emoji: '🏥', label: 'Medical/Dental' },
+  { id: 'law', emoji: '⚖️', label: 'Law Firm' },
+  { id: 'realestate', emoji: '🏠', label: 'Real Estate' },
+  { id: 'hotel', emoji: '🏨', label: 'Hotel/BnB' },
+  { id: 'ecommerce', emoji: '🛒', label: 'E-commerce' },
+  { id: 'agency', emoji: '💼', label: 'Agency/Freelancer' },
+  { id: 'autorepair', emoji: '🔧', label: 'Auto Repair' },
 ];
 
 export default function StepBusiness({ onNext, onBack }) {
@@ -28,11 +28,11 @@ export default function StepBusiness({ onNext, onBack }) {
     if (subStep === 1 && category) { setSubStep(2); return; }
     if (subStep === 2) {
       setLoading(true);
-      const business = await base44.entities.Business.create({
-        name, type: category, city: location, owner_email: 'owner@business.com',
-        description: service, onboarding_complete: false, plan: 'starter', plan_status: 'trialing'
+      const business = await entities.Business.create({
+        name, type: category, city: location,
+        description: service, onboarding_complete: true, plan_status: 'trialing'
       });
-      onNext({ businessName: name, category, location, service, businessId: business.id });
+      onNext({ businessName: name, category, location, service, businessId: business._id || business.id });
       setLoading(false);
     }
   };

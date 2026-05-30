@@ -14,9 +14,22 @@ import { runSuperAgent } from '../agents/index.js';
 import { getLLM } from '../llm/providers.js';
 import { AgentTaskModel } from '../db/models/AgentTask.js';
 import { ChatSessionModel } from '../db/models/ChatSession.js';
+import { BusinessModel } from '../db/models/Business.js';
+import { verifyJWT } from '../auth/middleware.js';
 
 export function createAgentRoutes(): Router {
   const router = Router();
+
+  // Middleware to get business_id from authenticated user
+  const getBusinessId = async (req: Request): Promise<string> => {
+    if (req.user?.id) {
+      const user = await import('../db/models/User.js').then(m => m.UserModel.findById(req.user!.id));
+      if (user?.business_id) {
+        return user.business_id.toString();
+      }
+    }
+    return 'demo';  // Fallback for non-authenticated or demo mode
+  };
 
   // ─── POST /api/agents/run ───────────────────────────────────────────────────
 
@@ -26,7 +39,7 @@ export function createAgentRoutes(): Router {
    * Body:
    *   {
    *     task: string,                    // User request
-   *     business_id?: string,            // Default: 'demo'
+   *     business_id?: string,            // Default: authenticated user's business
    *     skip_confirmation?: boolean      // Default: false (require approval)
    *   }
    *
@@ -40,11 +53,12 @@ export function createAgentRoutes(): Router {
    * Example:
    *   curl -X POST http://localhost:3001/api/agents/run \
    *     -H "Content-Type: application/json" \
-   *     -d '{"task":"Find 10 leads in tech","business_id":"demo"}'
+   *     -d '{"task":"Find 10 leads in tech"}'
    */
-  router.post('/run', async (req: Request, res: Response, next: NextFunction) => {
+  router.post('/run', verifyJWT, async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { task, business_id = 'demo', skip_confirmation = false } = req.body;
+      const { task, business_id, skip_confirmation = false } = req.body;
+      const actualBusinessId = business_id || await getBusinessId(req);
 
       if (!task) {
         return res.status(400).json({ error: 'task is required' });
@@ -69,7 +83,7 @@ export function createAgentRoutes(): Router {
         try {
           const result = await runSuperAgent({
             task,
-            businessId: business_id,
+            businessId: actualBusinessId,
             options: { skipConfirmation: skip_confirmation },
             onStep: (step) => {
               sendEvent('step', {
@@ -97,7 +111,7 @@ export function createAgentRoutes(): Router {
 
         const result = await runSuperAgent({
           task,
-          businessId: business_id,
+          businessId: actualBusinessId,
           options: { skipConfirmation: skip_confirmation },
           onStep: () => {}, // Silent for JSON response
           onConfirm: async () => true, // Auto-approve for JSON
@@ -134,7 +148,7 @@ export function createAgentRoutes(): Router {
    *     -H "Content-Type: application/json" \
    *     -d '{"agent_task_id":"507f1f77bcf86cd799439011"}'
    */
-  router.post('/approve', async (req: Request, res: Response, next: NextFunction) => {
+  router.post('/approve', verifyJWT, async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { agent_task_id } = req.body;
 
@@ -197,7 +211,7 @@ export function createAgentRoutes(): Router {
    *     -H "Content-Type: application/json" \
    *     -d '{"agent_task_id":"507f1f77bcf86cd799439011","reason":"Not ready yet"}'
    */
-  router.post('/reject', async (req: Request, res: Response, next: NextFunction) => {
+  router.post('/reject', verifyJWT, async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { agent_task_id, reason = 'Rejected by user' } = req.body;
 
@@ -240,7 +254,7 @@ export function createAgentRoutes(): Router {
    *   {
    *     message: string,          // User message
    *     session_id?: string,      // Optional session ID (for conversation history)
-   *     business_id?: string      // Default: 'demo'
+   *     business_id?: string      // Default: authenticated user's business
    *   }
    *
    * Response:
@@ -256,11 +270,12 @@ export function createAgentRoutes(): Router {
    * Example:
    *   curl -X POST http://localhost:3001/api/agents/chat \
    *     -H "Content-Type: application/json" \
-   *     -d '{"message":"What are good ways to attract leads?","business_id":"demo"}'
+   *     -d '{"message":"What are good ways to attract leads?"}'
    */
-  router.post('/chat', async (req: Request, res: Response, next: NextFunction) => {
+  router.post('/chat', verifyJWT, async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { message, session_id, business_id = 'demo' } = req.body;
+      const { message, session_id, business_id } = req.body;
+      const actualBusinessId = business_id || await getBusinessId(req);
 
       if (!message) {
         return res.status(400).json({ error: 'message is required' });
@@ -275,7 +290,7 @@ export function createAgentRoutes(): Router {
 
       if (!session) {
         session = await ChatSessionModel.create({
-          business_id,
+          business_id: actualBusinessId,
           messages: [],
         });
       }
@@ -321,7 +336,7 @@ export function createAgentRoutes(): Router {
    * List recent agent workflows.
    *
    * Query:
-   *   business_id?: string       // Filter by business (default: 'demo')
+   *   business_id?: string       // Filter by business (default: authenticated user's business)
    *   limit?: number             // Default: 20
    *   offset?: number            // Default: 0
    *   status?: string            // Filter by status (completed, rejected, failed)
@@ -340,13 +355,14 @@ export function createAgentRoutes(): Router {
    *   ]
    *
    * Example:
-   *   curl "http://localhost:3001/api/agents/runs?business_id=demo&limit=10"
+   *   curl "http://localhost:3001/api/agents/runs?limit=10"
    */
-  router.get('/runs', async (req: Request, res: Response, next: NextFunction) => {
+  router.get('/runs', verifyJWT, async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { business_id = 'demo', limit = 20, offset = 0, status } = req.query;
+      const { business_id, limit = 20, offset = 0, status } = req.query;
+      const actualBusinessId = (business_id as string) || await getBusinessId(req);
 
-      const query: Record<string, any> = { business_id };
+      const query: Record<string, any> = { business_id: actualBusinessId };
 
       if (status) {
         query.status = status;

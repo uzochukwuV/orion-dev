@@ -1,33 +1,51 @@
 import { useState, useEffect } from 'react';
-import { entities } from '@/api/entities';
+import { entities, getDashboardStats } from '@/api/entities';
 import { TrendingUp, Users, Megaphone, Zap } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer, Tooltip } from 'recharts';
 
-const revenueData = [
-  { week: 'W1', revenue: 4200 }, { week: 'W2', revenue: 5100 }, { week: 'W3', revenue: 4800 },
-  { week: 'W4', revenue: 6200 }, { week: 'W5', revenue: 5900 }, { week: 'W6', revenue: 7400 },
-  { week: 'W7', revenue: 8100 }, { week: 'W8', revenue: 7800 },
-];
+// Generate chart data from campaign revenue over time
+function generateRevenueData(campaigns) {
+  // Create 8 weeks of data
+  const data = [];
+  const now = new Date();
+  let total = 0;
+  
+  for (let i = 7; i >= 0; i--) {
+    const weekDate = new Date(now);
+    weekDate.setDate(weekDate.getDate() - (i * 7));
+    const weekLabel = `W${8 - i}`;
+    
+    // Add some revenue from campaigns for this week (simulate growth)
+    const weeklyRevenue = campaigns.reduce((sum, c) => {
+      if (c.revenue_attributed) {
+        return sum + (c.revenue_attributed / 8);
+      }
+      return sum;
+    }, 0);
+    
+    total += weeklyRevenue;
+    data.push({ week: weekLabel, revenue: Math.round(total) });
+  }
+  
+  return data;
+}
 
 export default function Dashboard() {
+  const [stats, setStats] = useState(null);
   const [opportunities, setOpportunities] = useState([]);
   const [leads, setLeads] = useState([]);
-  const [campaigns, setCampaigns] = useState([]);
-  const [agentRuns, setAgentRuns] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     Promise.all([
-      entities.Opportunity.list('-created_at', 5),
-      entities.Lead.list('-created_at', 5),
-      entities.Campaign.list('-created_at', 5),
-      entities.AgentRun.list('-created_at', 5),
-    ]).then(([opps, l, c, runs]) => {
+      getDashboardStats(),
+      entities.Opportunity.list('-createdAt', 5),
+      entities.Lead.list('-createdAt', 5),
+    ]).then(([statsData, opps, l]) => {
+      setStats(statsData);
       setOpportunities(opps);
       setLeads(l);
-      setCampaigns(c);
-      setAgentRuns(runs);
       setLoading(false);
     }).catch(err => {
       console.error('Failed to load dashboard:', err);
@@ -35,18 +53,38 @@ export default function Dashboard() {
     });
   }, []);
 
-  const stats = [
-    { label: 'Revenue This Month', value: '$8,140', change: '+23%', icon: TrendingUp, color: 'text-electric-violet' },
-    { label: 'Active Leads', value: leads.filter(l => ['new','contacted','qualified'].includes(l.status)).length || '12', change: '+5 this week', icon: Users, color: 'text-midnight-ink' },
-    { label: 'Campaigns Running', value: campaigns.filter(c => c.status === 'active').length || '3', change: '2 pending review', icon: Megaphone, color: 'text-midnight-ink' },
-    { label: 'Opportunities Found', value: opportunities.filter(o => o.status === 'new').length || '7', change: 'New this week', icon: Zap, color: 'text-electric-violet' },
+  if (loading || !stats) {
+    return (
+      <div className="space-y-8">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
+          {[1, 2, 3, 4].map(i => (
+            <div key={i} className="card-elevated animate-pulse">
+              <div className="h-4 bg-cloud-canvas rounded w-24 mb-4" />
+              <div className="h-8 bg-cloud-canvas rounded w-16" />
+            </div>
+          ))}
+        </div>
+        <div className="card-elevated animate-pulse">
+          <div className="h-64 bg-cloud-canvas rounded" />
+        </div>
+      </div>
+    );
+  }
+
+  const revenueData = generateRevenueData([]);
+  
+  const dashboardStats = [
+    { label: 'Revenue This Month', value: `$${stats.campaigns.revenue.toLocaleString()}`, change: `${stats.campaigns.active} active campaigns`, icon: TrendingUp, color: 'text-electric-violet' },
+    { label: 'Active Leads', value: stats.leads.active, change: `${stats.leads.won} won`, icon: Users, color: 'text-midnight-ink' },
+    { label: 'Campaigns Running', value: stats.campaigns.total, change: `${stats.campaigns.pending} pending review`, icon: Megaphone, color: 'text-midnight-ink' },
+    { label: 'Opportunities Found', value: stats.opportunities.new, change: 'New this week', icon: Zap, color: 'text-electric-violet' },
   ];
 
   return (
     <div className="space-y-8">
       {/* Stats grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
-        {stats.map((s, i) => (
+        {dashboardStats.map((s, i) => (
           <div key={i} className="card-elevated">
             <div className="flex items-start justify-between mb-4">
               <p className="text-[13px] font-inter font-medium text-muted-ash">{s.label}</p>
@@ -64,9 +102,9 @@ export default function Dashboard() {
           <div className="flex items-center justify-between mb-6">
             <div>
               <p className="font-montserrat font-medium text-[16px] text-midnight-ink">Revenue Trend</p>
-              <p className="text-[12px] text-muted-ash font-inter mt-0.5">Past 8 weeks</p>
+              <p className="text-[12px] text-muted-ash font-inter mt-0.5">Total attributed revenue</p>
             </div>
-            <span className="text-[12px] bg-electric-violet/10 text-electric-violet px-3 py-1 rounded-full font-inter font-medium">+23% growth</span>
+            <span className="text-[12px] bg-electric-violet/10 text-electric-violet px-3 py-1 rounded-full font-inter font-medium">${stats.campaigns.revenue.toLocaleString()} total</span>
           </div>
           <ResponsiveContainer width="100%" height={160}>
             <AreaChart data={revenueData}>
@@ -78,7 +116,7 @@ export default function Dashboard() {
               </defs>
               <XAxis dataKey="week" tick={{ fontSize: 11, fill: '#333333', fontFamily: 'Inter' }} axisLine={false} tickLine={false} />
               <YAxis hide />
-              <Tooltip contentStyle={{ background: '#fff', border: '1px solid #f7f5fd', borderRadius: 8, fontSize: 12, fontFamily: 'Inter' }} />
+              <Tooltip contentStyle={{ background: '#fff', border: '1px solid #f7f5fd', borderRadius: 8, fontSize: 12, fontFamily: 'Inter' }} formatter={(v) => [`$${Number(v).toLocaleString()}`, 'Revenue']} />
               <Area type="monotone" dataKey="revenue" stroke="#5757f8" strokeWidth={2} fill="url(#rv)" />
             </AreaChart>
           </ResponsiveContainer>
@@ -87,28 +125,16 @@ export default function Dashboard() {
         <div className="card-elevated">
           <p className="font-montserrat font-medium text-[15px] text-midnight-ink mb-4">Agent Activity</p>
           <div className="space-y-3">
-            {agentRuns.length > 0 ? agentRuns.map((run, i) => (
+            {stats.agentRuns && stats.agentRuns.length > 0 ? stats.agentRuns.map((run, i) => (
               <div key={i} className="flex items-start gap-3">
-                <div className={`w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0 ${run.status === 'completed' ? 'bg-green-500' : run.status === 'running' ? 'bg-electric-violet' : 'bg-red-400'}`} />
+                <div className={`w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0 ${run.status === 'completed' ? 'bg-green-500' : run.status === 'running' ? 'bg-electric-violet animate-pulse' : 'bg-red-400'}`} />
                 <div>
                   <p className="text-[12px] font-inter font-medium text-midnight-ink capitalize">{run.agent_type?.replace('_', ' ')}</p>
                   <p className="text-[11px] text-muted-ash font-inter">{run.output_summary || 'Completed'}</p>
                 </div>
               </div>
             )) : (
-              [
-                { agent: 'Market Intelligence', status: 'completed', note: 'Found 3 new opportunities' },
-                { agent: 'Sales Agent', status: 'completed', note: 'Sent 4 follow-ups' },
-                { agent: 'Social Media', status: 'running', note: 'Generating posts…' },
-              ].map((item, i) => (
-                <div key={i} className="flex items-start gap-3">
-                  <div className={`w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0 ${item.status === 'completed' ? 'bg-green-500' : 'bg-electric-violet animate-pulse'}`} />
-                  <div>
-                    <p className="text-[12px] font-inter font-medium text-midnight-ink">{item.agent}</p>
-                    <p className="text-[11px] text-muted-ash font-inter">{item.note}</p>
-                  </div>
-                </div>
-              ))
+              <p className="text-[12px] text-muted-ash">No agent runs yet. Run an agent to see activity.</p>
             )}
           </div>
         </div>
@@ -126,11 +152,7 @@ export default function Dashboard() {
             {opportunities.length > 0 ? opportunities.slice(0, 3).map((opp, i) => (
               <OpportunityRow key={i} opp={opp} />
             )) : (
-              [
-                { title: 'Competitor raised prices 15%', category: 'pricing', impact_score: 8, urgency: 'high' },
-                { title: '"Hair extensions" trending locally', category: 'trend', impact_score: 7, urgency: 'medium' },
-                { title: 'Nearby salon closed — gap in market', category: 'gap', impact_score: 9, urgency: 'high' },
-              ].map((opp, i) => <OpportunityRow key={i} opp={opp} />)
+              <p className="text-[13px] text-muted-ash text-center py-8">No opportunities yet. Run an intelligence scan.</p>
             )}
           </div>
         </div>
@@ -145,11 +167,7 @@ export default function Dashboard() {
             {leads.length > 0 ? leads.slice(0, 3).map((lead, i) => (
               <LeadRow key={i} lead={lead} />
             )) : (
-              [
-                { name: 'Sarah Johnson', service_interest: 'Haircut & Color', status: 'new', ai_score: 92 },
-                { name: 'Mike Torres', service_interest: 'Deep Tissue Massage', status: 'contacted', ai_score: 75 },
-                { name: 'Emma Chen', service_interest: 'Highlights', status: 'qualified', ai_score: 88 },
-              ].map((lead, i) => <LeadRow key={i} lead={lead} />)
+              <p className="text-[13px] text-muted-ash text-center py-8">No leads yet. Add your first lead.</p>
             )}
           </div>
         </div>
@@ -180,7 +198,7 @@ function LeadRow({ lead }) {
     <div className="flex items-center justify-between py-2.5 border-b border-ghost-border last:border-0">
       <div>
         <p className="text-[13px] font-inter font-medium text-midnight-ink">{lead.name}</p>
-        <p className="text-[11px] text-muted-ash font-inter">{lead.service_interest}</p>
+        <p className="text-[11px] text-muted-ash font-inter">{lead.service_interest || 'General inquiry'}</p>
       </div>
       <div className="flex items-center gap-2">
         {lead.ai_score && <span className="text-[11px] font-medium text-muted-ash">{lead.ai_score}%</span>}

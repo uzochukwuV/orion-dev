@@ -17,6 +17,9 @@ import type { StructuredToolInterface } from '@langchain/core/tools';
 let _cachedTools: StructuredToolInterface[] | null = null;
 let _client: MultiServerMCPClient | null = null;
 
+// MCP init timeout (30 seconds)
+const MCP_TIMEOUT_MS = 30_000;
+
 /**
  * Initialises the Bright Data MCP client and loads all available tools.
  * Results are cached; subsequent calls return the cached list immediately.
@@ -38,6 +41,8 @@ export async function initBrightDataTools(): Promise<StructuredToolInterface[]> 
   }
 
   try {
+    console.log('[BrightData] Spawning MCP process...');
+
     _client = new MultiServerMCPClient({
       brightdata: {
         transport: 'stdio',
@@ -51,10 +56,23 @@ export async function initBrightDataTools(): Promise<StructuredToolInterface[]> 
       },
     });
 
-    const tools = await _client.getTools();
-    _cachedTools = tools as StructuredToolInterface[];
+    // Add timeout to prevent hanging indefinitely
+    const toolsPromise = _client.getTools();
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      setTimeout(() => reject(new Error('MCP initialization timed out after 30s')), MCP_TIMEOUT_MS);
+    });
 
-    console.log(`[BrightData] Loaded ${_cachedTools.length} MCP tools`);
+    const tools = await Promise.race([toolsPromise, timeoutPromise]);
+    const toolArray = tools as StructuredToolInterface[];
+
+    if (toolArray.length === 0) {
+      console.warn('[BrightData] MCP initialized but returned 0 tools — possible quota or configuration issue');
+      console.warn('[BrightData] Agents will use LLM knowledge only');
+    } else {
+      console.log(`[BrightData] Loaded ${toolArray.length} MCP tools`);
+    }
+
+    _cachedTools = toolArray;
     return _cachedTools;
   } catch (err) {
     console.warn('[BrightData] Failed to initialise MCP client — agents will use LLM knowledge only');

@@ -1,48 +1,67 @@
 import { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { entities, apiPost } from '@/api/entities';
+import { useAuth } from '@/lib/useOrionAuth';
 import { Bot, Play, CheckCircle2, XCircle, Loader2, TrendingUp, Megaphone, Users, Share2, Mic } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const agentDefs = [
-  { type: 'market_intelligence', label: 'Market Intelligence', icon: TrendingUp, desc: 'Scans competitors, pricing, trends, and local market gaps from live web data.', prompt: 'Run a comprehensive market intelligence scan for a local hair salon. Analyze competitor pricing, review trends, service gaps, and seasonal opportunities. Provide 3-5 actionable insights.' },
-  { type: 'marketing', label: 'Marketing Agent', icon: Megaphone, desc: 'Generates and optimizes marketing campaigns across email, social, and paid ads.', prompt: 'Create a complete marketing strategy for a local hair salon for the next 30 days. Include campaign ideas, messaging, channels, and budget allocation.' },
+  { type: 'market_intelligence', label: 'Market Intelligence', icon: TrendingUp, desc: 'Scans competitors, pricing, trends, and local market gaps from live web data.', prompt: 'Run a comprehensive market intelligence scan. Analyze competitor pricing, review trends, service gaps, and seasonal opportunities. Provide 3-5 actionable insights.' },
+  { type: 'marketing', label: 'Marketing Agent', icon: Megaphone, desc: 'Generates and optimizes marketing campaigns across email, social, and paid ads.', prompt: 'Create a complete marketing strategy for the next 30 days. Include campaign ideas, messaging, channels, and budget allocation.' },
   { type: 'sales', label: 'Sales Agent', icon: Users, desc: 'Scores leads, drafts follow-up messages, and manages your sales pipeline.', prompt: 'Review our lead pipeline and generate personalized follow-up strategies for each stage. Provide specific outreach templates.' },
-  { type: 'social_media', label: 'Social Media Agent', icon: Share2, desc: 'Monitors mentions, generates posts, and manages your social presence.', prompt: 'Create a 7-day social media content calendar for a hair salon. Include post ideas, captions, hashtags, and optimal posting times for Instagram and Facebook.' },
+  { type: 'social_media', label: 'Social Media Agent', icon: Share2, desc: 'Monitors mentions, generates posts, and manages your social presence.', prompt: 'Create a 7-day social media content calendar. Include post ideas, captions, hashtags, and optimal posting times.' },
 ];
 
 export default function Agents() {
+  const { business } = useAuth();
   const [runs, setRuns] = useState([]);
   const [running, setRunning] = useState({});
   const [outputs, setOutputs] = useState({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    base44.entities.AgentRun.list('-created_date', 20).then(data => { setRuns(data); setLoading(false); });
+    entities.AgentRun.list('-createdAt', 20).then(data => {
+      setRuns(data);
+      setLoading(false);
+    }).catch(() => {
+      setLoading(false);
+    });
   }, []);
 
   const runAgent = async (agent) => {
     setRunning(prev => ({ ...prev, [agent.type]: true }));
-    const startTime = Date.now();
 
-    const runRecord = await base44.entities.AgentRun.create({
-      business_id: 'demo',
-      agent_type: agent.type,
-      status: 'running',
-      trigger: 'manual',
-      input_summary: `Manual run of ${agent.label}`
-    });
+    try {
+      // Create agent run record
+      const runRecord = await entities.AgentRun.create({
+        agent_type: agent.type,
+        status: 'running',
+        trigger: 'manual',
+        input_summary: `Manual run of ${agent.label}`
+      });
 
-    const res = await base44.integrations.Core.InvokeLLM({ prompt: agent.prompt, add_context_from_internet: true });
+      // Call our LLM API
+      const res = await apiPost('/api/agents/chat', {
+        message: agent.prompt,
+        business_id: business?.id,
+      });
 
-    const duration = Math.round((Date.now() - startTime) / 1000);
-    const updated = await base44.entities.AgentRun.update(runRecord.id, {
-      status: 'completed',
-      output_summary: res.substring(0, 200),
-      duration_seconds: duration
-    });
+      const output = res.reply || res.response || 'Completed';
 
-    setOutputs(prev => ({ ...prev, [agent.type]: res }));
-    setRuns(prev => [updated, ...prev.filter(r => r.id !== runRecord.id)]);
+      // Update run record
+      await entities.AgentRun.update(runRecord.id || runRecord._id, {
+        status: 'completed',
+        output_summary: output.substring(0, 200),
+      });
+
+      setOutputs(prev => ({ ...prev, [agent.type]: output }));
+      
+      // Refresh runs list
+      const updatedRuns = await entities.AgentRun.list('-createdAt', 20);
+      setRuns(updatedRuns);
+    } catch (error) {
+      console.error('Agent run failed:', error);
+    }
+
     setRunning(prev => ({ ...prev, [agent.type]: false }));
   };
 
@@ -97,7 +116,7 @@ export default function Agents() {
         ) : (
           <div className="space-y-2">
             {runs.map((run, i) => (
-              <div key={run.id || i} className="flex items-center gap-4 py-2.5 border-b border-ghost-border last:border-0">
+              <div key={run.id || run._id || i} className="flex items-center gap-4 py-2.5 border-b border-ghost-border last:border-0">
                 <div className="flex-shrink-0">
                   {run.status === 'completed' ? <CheckCircle2 className="w-4 h-4 text-green-500" /> :
                    run.status === 'failed' ? <XCircle className="w-4 h-4 text-red-400" /> :

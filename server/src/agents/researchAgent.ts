@@ -7,7 +7,7 @@
  * Usage:
  *   const result = await runResearchAgent({
  *     task: "Find latest AI trends",
- *     businessContext: { name: 'TechCorp', type: 'SaaS', city: 'SF', competitors: [...] },
+ *     businessContext: { name: 'TechCorp', type: 'salon', city: 'SF', competitors: [...] },
  *     onStep: ({ agent, action, status }) => console.log(action)
  *   });
  */
@@ -16,6 +16,7 @@ import { z } from 'zod';
 import { getLLM } from '../llm/providers.js';
 import { getBrightDataTools } from '../tools/index.js';
 import { OpportunityModel } from '../db/models/Opportunity.js';
+import { getPlaybook, buildResearchPrompt, type Vertical } from '../playbooks/index.js';
 
 // ─── Schemas ─────────────────────────────────────────────────────────────────
 
@@ -79,36 +80,26 @@ export async function runResearchAgent({
     const llm = getLLM();
     const tools = await getBrightDataTools();
 
+    // Get vertical from businessContext
+    const vertical = (businessContext.type as Vertical) || 'salon';
+    const playbook = getPlaybook(vertical);
+
     // If no tools available, fall back to LLM-only knowledge
     if (tools.length === 0) {
       console.warn('[Research Agent] No Bright Data tools available — using LLM knowledge only');
     }
 
-    // Build research prompt
+    // Build vertical-aware research prompt
     const businessInfo = {
       name: businessContext.name || 'Unknown Business',
       type: businessContext.type || 'General',
       city: businessContext.city || 'Unknown',
+      location: businessContext.location || businessContext.city || 'Unknown',
       competitors: businessContext.competitors?.join(', ') || 'None specified',
     };
 
-    const researchPrompt = `You are a market research expert. Research and analyze the following:
-
-Task: ${task}
-
-Business Context:
-- Name: ${businessInfo.name}
-- Type: ${businessInfo.type}
-- Location: ${businessInfo.city}
-- Competitors: ${businessInfo.competitors}
-
-Provide detailed findings with sources and suggested actions based on your knowledge.
-Focus on:
-1. Market trends and opportunities
-2. Competitor strategies
-3. Industry developments
-4. Customer insights
-5. Emerging technologies relevant to the business`;
+    // Use playbook to build the research prompt
+    const researchPrompt = buildResearchPrompt(task, vertical, businessInfo);
 
     // Call LLM to get research response
     const researchResponse = await llm.invoke(researchPrompt);
@@ -117,7 +108,7 @@ Focus on:
       : JSON.stringify(researchResponse);
 
     // Parse research into structured findings
-    const structuredPrompt = `Convert this research summary into structured findings.
+    const structuredPrompt = `Convert this research summary into structured findings for a ${playbook.display_name}.
 
 Research Summary:
 ${researchText}
@@ -154,13 +145,13 @@ Return a JSON object with:
         status: 'new',
         business_id: businessContext.business_id || 'demo',
         suggested_action: finding.suggested_action,
-        raw_data: JSON.stringify(finding),
+        raw_data: JSON.stringify({ ...finding, vertical, playbook: playbook.display_name }),
       });
     }
 
     onStep?.({
       agent: 'Research Agent',
-      action: `Found ${result.findings.length} insights ✓`,
+      action: `Found ${result.findings.length} insights for ${playbook.display_name} ✓`,
       status: 'complete',
     });
 

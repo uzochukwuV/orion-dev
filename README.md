@@ -1,5 +1,6 @@
 **Welcome to your Base44 project** 
-
+Email: demo@lacucina.pl
+Password: password123
 **About**
 
 View and Edit  your app on [Base44.com](http://Base44.com) 

@@ -3,7 +3,7 @@ import mongoose, { Schema, Document } from 'mongoose';
 export interface IBusiness extends Document {
   user_id?: mongoose.Types.ObjectId;  // NEW: Link to ClerkUser
   name: string;
-  type: 'salon' | 'gym' | 'restaurant' | 'plumber' | 'electrician' | 'cleaner' | 'landscaper' | 'pet_services' | 'retail' | 'other';
+  type: 'salon' | 'gym' | 'restaurant' | 'clinic' | 'law' | 'realestate' | 'hotel' | 'ecommerce' | 'agency' | 'autorepair' | 'plumber' | 'electrician' | 'cleaner' | 'landscaper' | 'pet_services' | 'retail' | 'other';
   owner_email: string;
   address?: string;
   city?: string;
@@ -21,6 +21,12 @@ export interface IBusiness extends Document {
   main_services?: string[];
   competitors?: string[];
   monthly_revenue_goal?: number;
+  // WhatsApp integration fields
+  whatsapp_phone?: string;
+  whatsapp_connected?: boolean;
+  // Location for playbook interpolation
+  location?: string;
+  region?: string;
 }
 
 const BusinessSchema = new Schema<IBusiness>({
@@ -32,7 +38,7 @@ const BusinessSchema = new Schema<IBusiness>({
   name: { type: String, required: true },
   type: {
     type: String,
-    enum: ['salon', 'gym', 'restaurant', 'plumber', 'electrician', 'cleaner', 'landscaper', 'pet_services', 'retail', 'other'],
+    enum: ['salon', 'gym', 'restaurant', 'clinic', 'law', 'realestate', 'hotel', 'ecommerce', 'agency', 'autorepair', 'plumber', 'electrician', 'cleaner', 'landscaper', 'pet_services', 'retail', 'other'],
     required: true,
   },
   owner_email: { type: String, required: true },
@@ -52,6 +58,10 @@ const BusinessSchema = new Schema<IBusiness>({
   main_services: [String],
   competitors: [String],
   monthly_revenue_goal: Number,
+  whatsapp_phone: String,
+  whatsapp_connected: { type: Boolean, default: false },
+  location: String,
+  region: String,
 }, { timestamps: true });
 
 export const BusinessModel = mongoose.model<IBusiness>('Business', BusinessSchema);

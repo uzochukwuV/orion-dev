@@ -5,7 +5,8 @@
  * Handles:
  *   - Audio stream ingestion from browser
  *   - Transcript streaming back to browser
- *   - Optional agent response generation
+ *   - Agent response generation (SuperAgent loop-back)
+ *   - Optional TTS synthesis
  *
  * Setup:
  *   1. Call setupVoiceWebSocket(httpServer) after server.listen()
@@ -30,15 +31,29 @@ interface VoiceClientState {
   sessionId: string;
   businessId: string;
   fullTranscript: string;
+  conversationHistory: Array<{ role: 'user' | 'assistant'; content: string }>;
 }
 
 interface TranscriptMessage {
-  type: 'transcript' | 'partial' | 'final' | 'error' | 'connected';
+  type: 'transcript' | 'partial' | 'final' | 'error' | 'connected' | 'agent_response';
   text?: string;
   isFinal?: boolean;
   confidence?: number;
   error?: string;
   timestamp?: string;
+  audioUrl?: string;  // Optional TTS audio URL
+}
+
+// ─── Agent Import ─────────────────────────────────────────────────────────────
+// Lazy import to avoid circular dependencies
+let runSuperAgent: any = null;
+
+async function getSuperAgent() {
+  if (!runSuperAgent) {
+    const module = await import('../agents/superAgent.js');
+    runSuperAgent = module.runSuperAgent;
+  }
+  return runSuperAgent;
 }
 
 // ─── Setup Voice WebSocket ───────────────────────────────────────────────────
@@ -67,9 +82,9 @@ export function setupVoiceWebSocket(
   wss.on('connection', async (ws: WebSocket, req) => {
     const clientId = Math.random().toString(36).substring(7);
     const sessionId = req.url?.split('?session=')[1] || clientId;
-    const businessId = req.url?.split('?business=')[1] || 'demo';
+    const businessId = req.url?.split('&business=')[1] || req.url?.split('?business=')[1] || 'demo';
 
-    console.log(`[Voice] Client connected: ${clientId} (session=${sessionId})`);
+    console.log(`[Voice] Client connected: ${clientId} (session=${sessionId}, business=${businessId})`);
 
     const clientState: VoiceClientState = {
       speechmaticsClient: null,
@@ -77,11 +92,30 @@ export function setupVoiceWebSocket(
       sessionId,
       businessId,
       fullTranscript: '',
+      conversationHistory: [],
     };
 
     // Handle WebSocket messages from browser
-    ws.on('message', async (message: Buffer) => {
+    ws.on('message', async (message: Buffer | string) => {
       try {
+        // Handle text messages (control messages)
+        if (typeof message === 'string') {
+          const data = JSON.parse(message);
+          if (data.type === 'end') {
+            // End of audio stream — trigger agent response
+            if (clientState.fullTranscript && clientState.speechmaticsClient) {
+              clientState.speechmaticsClient.stop();
+            }
+            return;
+          }
+          if (data.type === 'get_ai_response') {
+            // Explicitly request AI response for current transcript
+            await handleAgentResponse(ws, clientState);
+            return;
+          }
+        }
+
+        // Binary message — audio data
         if (!clientState.speechmaticsClient && !clientState.isConnected) {
           // First message: initialize Speechmatics connection
           await initSpeechmaticsClient(clientState, ws, apiKey!);
@@ -123,6 +157,60 @@ export function setupVoiceWebSocket(
   return wss;
 }
 
+// ─── Agent Response Handler ──────────────────────────────────────────────────
+
+/**
+ * Handle agent response generation from voice transcript.
+ * This creates the loop-back: voice → transcript → SuperAgent → response → TTS
+ */
+async function handleAgentResponse(ws: WebSocket, clientState: VoiceClientState): Promise<void> {
+  if (!clientState.fullTranscript.trim()) {
+    return;
+  }
+
+  console.log(`[Voice] Processing transcript: "${clientState.fullTranscript.substring(0, 50)}..."`);
+
+  try {
+    const superAgent = await getSuperAgent();
+
+    // Add user message to conversation history
+    clientState.conversationHistory.push({
+      role: 'user',
+      content: clientState.fullTranscript,
+    });
+
+    // Run SuperAgent with the voice transcript as the task
+    const result = await superAgent({
+      task: clientState.fullTranscript,
+      businessId: clientState.businessId,
+      options: { skipConfirmation: true }, // Voice should be fast, skip approval gates
+    });
+
+    const agentResponse = result.final_summary || 'I processed your request.';
+
+    // Add assistant response to conversation history
+    clientState.conversationHistory.push({
+      role: 'assistant',
+      content: agentResponse,
+    });
+
+    // Send response back to browser
+    sendTranscript(ws, {
+      type: 'agent_response',
+      text: agentResponse,
+      isFinal: true,
+    });
+
+    console.log(`[Voice] Agent responded: "${agentResponse.substring(0, 50)}..."`);
+  } catch (error) {
+    console.error(`[Voice] Agent error: ${(error as Error).message}`);
+    sendTranscript(ws, {
+      type: 'error',
+      error: `Agent processing failed: ${(error as Error).message}`,
+    });
+  }
+}
+
 // ─── Speechmatics Client Initialization ──────────────────────────────────────
 
 /**
@@ -151,6 +239,13 @@ async function initSpeechmaticsClient(
 
   client.on('end', () => {
     console.log(`[Voice] Speechmatics session ended: ${clientState.sessionId}`);
+    
+    // Trigger agent response when stream ends
+    if (clientState.fullTranscript) {
+      // Use setImmediate to avoid blocking
+      setImmediate(() => handleAgentResponse(ws, clientState));
+    }
+
     sendTranscript(ws, {
       type: 'final',
       text: clientState.fullTranscript,
@@ -160,17 +255,15 @@ async function initSpeechmaticsClient(
 
   // Listen for transcription events
   client.on('AddTranscript', (event: any) => {
-    // Partial transcript
-    const text = event.transcript?.[0]?.confidence_score 
-      ? event.transcript.map((t: any) => t.alternatives?.[0]?.content).join(' ')
-      : '';
+    // Final transcript (after end of speech segment)
+    const text = event.transcript?.[0]?.alternatives?.[0]?.content || '';
 
     if (text) {
       clientState.fullTranscript = text;
       sendTranscript(ws, {
-        type: 'partial',
+        type: 'transcript',
         text,
-        isFinal: false,
+        isFinal: true,
         confidence: event.transcript?.[0]?.confidence_score || 0.8,
       });
     }

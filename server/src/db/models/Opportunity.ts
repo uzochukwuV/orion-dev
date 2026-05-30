@@ -4,7 +4,7 @@ export interface IOpportunity extends Document {
   business_id: string;
   title: string;
   description?: string;
-  category: 'pricing' | 'competitor' | 'trend' | 'review' | 'seasonal' | 'gap';
+  category: 'pricing' | 'competitor' | 'trend' | 'review' | 'seasonal' | 'gap' | 'market' | 'technology' | 'customer' | 'lead' | 'general';
   source?: string;
   impact_score?: number;
   urgency?: 'low' | 'medium' | 'high' | 'critical';
@@ -20,7 +20,7 @@ const OpportunitySchema = new Schema<IOpportunity>({
   description: String,
   category: {
     type: String,
-    enum: ['pricing', 'competitor', 'trend', 'review', 'seasonal', 'gap'],
+    enum: ['pricing', 'competitor', 'trend', 'review', 'seasonal', 'gap', 'market', 'technology', 'customer', 'lead', 'general'],
     required: true,
   },
   source: String,

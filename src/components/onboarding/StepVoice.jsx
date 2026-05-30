@@ -1,8 +1,10 @@
 import { useState, useRef } from 'react';
 import { Mic, MicOff, ArrowRight, ArrowLeft, Loader2, Volume2 } from 'lucide-react';
-import { base44 } from '@/api/base44Client';
+import { apiPost } from '@/api/entities';
+import { useAuth } from '@/lib/useOrionAuth';
 
 export default function StepVoice({ onNext, onBack, data }) {
+  const { business } = useAuth();
   const [listening, setListening] = useState(false);
   const [transcript, setTranscript] = useState('');
   const [aiResponse, setAiResponse] = useState('');
@@ -30,14 +32,21 @@ export default function StepVoice({ onNext, onBack, data }) {
 
   const processVoice = async (text) => {
     setLoading(true);
-    const res = await base44.integrations.Core.InvokeLLM({
-      prompt: `A new business owner just signed up for Orion. They said: "${text}".
+    try {
+      const res = await apiPost('/api/agents/chat', {
+        message: `A new business owner just signed up for Orion. They said: "${text}".
 Their business: ${data.businessName || 'a local business'} (${data.category || 'service business'}) in ${data.location || 'their area'}.
 Write a warm, confident 2-sentence acknowledgement that shows Orion understood their business context and is ready to help. Be specific to what they said.`,
-    });
-    setAiResponse(res);
+        business_id: business?.id,
+      });
+      const response = res?.reply || 'Welcome! Orion is ready to help grow your business.';
+      setAiResponse(response);
+      if ('speechSynthesis' in window) window.speechSynthesis.speak(new SpeechSynthesisUtterance(response));
+    } catch (err) {
+      console.error('Voice processing failed:', err);
+      setAiResponse('Welcome! Orion is ready to help grow your business.');
+    }
     setLoading(false);
-    if ('speechSynthesis' in window) window.speechSynthesis.speak(new SpeechSynthesisUtterance(res));
   };
 
   return (

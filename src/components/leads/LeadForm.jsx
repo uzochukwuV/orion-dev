@@ -1,9 +1,11 @@
     import { useState } from 'react';
 import { X, Sparkles, Loader2 } from 'lucide-react';
-import { base44 } from '@/api/base44Client';
+import { entities, apiPost } from '@/api/entities';
+import { useAuth } from '@/lib/useOrionAuth';
 import { motion } from 'framer-motion';
 
 export default function LeadForm({ onClose, onCreated }) {
+  const { business } = useAuth();
   const [form, setForm] = useState({ name: '', email: '', phone: '', source: 'website_form', service_interest: '', value_estimate: '' });
   const [scoring, setScoring] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -11,19 +13,23 @@ export default function LeadForm({ onClose, onCreated }) {
   const scoreWithAI = async () => {
     if (!form.name || !form.service_interest) return;
     setScoring(true);
-    const res = await base44.integrations.Core.InvokeLLM({
-      prompt: `Score this lead for a hair salon business on a scale of 0-100 based on their interest and information.
-Name: ${form.name}, Service Interest: ${form.service_interest}, Source: ${form.source}
-Return only a JSON object with: score (number 0-100) and reason (string, 1 sentence)`,
-      response_json_schema: { type: 'object', properties: { score: { type: 'number' }, reason: { type: 'string' } } }
-    });
-    if (res?.score) setForm(prev => ({ ...prev, ai_score: res.score }));
+    try {
+      const res = await apiPost('/api/agents/chat', {
+        message: `Score this lead on a scale of 0-100 based on their interest and information. Name: ${form.name}, Service Interest: ${form.service_interest}, Source: ${form.source}. Return only a JSON object with: score (number 0-100) and reason (string, 1 sentence).`,
+        business_id: business?.id,
+      });
+      // Try to extract score from response
+      const match = res?.reply?.match(/"score"\s*:\s*(\d+)/);
+      if (match) setForm(prev => ({ ...prev, ai_score: Number(match[1]) }));
+    } catch (err) {
+      console.error('Lead scoring failed:', err);
+    }
     setScoring(false);
   };
 
   const save = async () => {
     setSaving(true);
-    const created = await base44.entities.Lead.create({ ...form, business_id: 'demo', value_estimate: Number(form.value_estimate) || 0 });
+    const created = await entities.Lead.create({ ...form, business_id: business?.id, value_estimate: Number(form.value_estimate) || 0 });
     onCreated(created);
     setSaving(false);
   };

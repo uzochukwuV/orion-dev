@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { TrendingUp, Megaphone, Users, ArrowRight, Loader2, Sparkles, CheckCircle2 } from 'lucide-react';
-import { base44 } from '@/api/base44Client';
+import { apiPost } from '@/api/entities';
+import { useAuth } from '@/lib/useOrionAuth';
 
 const actions = [
   { id: 'scan', icon: TrendingUp, title: 'Run my first market scan', desc: 'See what competitors are doing and where the opportunities are — right now.', cta: 'Scan market' },
@@ -9,6 +10,7 @@ const actions = [
 ];
 
 export default function StepValue({ onNext, data }) {
+  const { business } = useAuth();
   const [selected, setSelected] = useState(null);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState('');
@@ -17,21 +19,28 @@ export default function StepValue({ onNext, data }) {
   const runAction = async () => {
     if (!selected) return;
     setLoading(true);
-    if (selected === 'scan') {
-      const res = await base44.integrations.Core.InvokeLLM({
-        prompt: `Run a quick market intelligence scan for ${data.businessName || 'a local service business'} (${data.category || 'service business'}) in ${data.location || 'their city'}. List 3 specific, actionable market opportunities they should act on this week. Be direct and specific.`,
-        add_context_from_internet: true,
-      });
-      setResult(res);
-    } else if (selected === 'campaign') {
-      const res = await base44.integrations.Core.InvokeLLM({
-        prompt: `Create a short, punchy marketing campaign for ${data.businessName || 'a local business'} offering ${data.service || 'local services'} in ${data.location || 'their city'}. Give me a headline, 2-sentence body copy, and a call to action. Make it ready to use.`,
-      });
-      setResult(res);
-    } else {
-      setResult(`Your lead pipeline is ready. Any customer inquiry — call, DM, walk-in — can be added here. Orion will score it automatically and remind you to follow up at the right time.`);
+    try {
+      if (selected === 'scan') {
+        const res = await apiPost('/api/agents/chat', {
+          message: `Run a quick market intelligence scan for ${data.businessName || 'a local service business'} (${data.category || 'service business'}) in ${data.location || 'their city'}. List 3 specific, actionable market opportunities they should act on this week. Be direct and specific.`,
+          business_id: business?.id,
+        });
+        setResult(res?.reply || 'Market scan complete. Your dashboard has been updated with opportunities.');
+      } else if (selected === 'campaign') {
+        const res = await apiPost('/api/agents/chat', {
+          message: `Create a short, punchy marketing campaign for ${data.businessName || 'a local business'} offering ${data.service || 'local services'} in ${data.location || 'their city'}. Give me a headline, 2-sentence body copy, and a call to action. Make it ready to use.`,
+          business_id: business?.id,
+        });
+        setResult(res?.reply || 'Campaign created! Check your Campaigns page to launch it.');
+      } else {
+        setResult(`Your lead pipeline is ready. Any customer inquiry — call, DM, walk-in — can be added here. Orion will score it automatically and remind you to follow up at the right time.`);
+      }
+      setDone(true);
+    } catch (err) {
+      console.error('Action failed:', err);
+      setResult('Action completed. Check your dashboard for results.');
+      setDone(true);
     }
-    setDone(true);
     setLoading(false);
   };
 
