@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { entities, apiPost } from '@/api/entities';
+import { useAuth } from '@/lib/useOrionAuth';
 import { Share2, Sparkles, Loader2, Plus } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -19,6 +20,7 @@ const statusColors = {
 };
 
 export default function Social() {
+  const { business } = useAuth();
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
@@ -33,11 +35,16 @@ export default function Social() {
 
   const generatePosts = async () => {
     if (!topic.trim()) return;
+    if (!business?.id) {
+      console.error('No business ID available');
+      return;
+    }
+    
     setGenerating(true);
     try {
       const res = await apiPost('/api/agents/run', {
-        task: `Generate 3 engaging social media posts for a local hair salon about: "${topic}". Create posts for Instagram, Facebook, and Google Business. Each post should be platform-appropriate. Include relevant hashtags for Instagram.`,
-        business_id: 'demo',
+        task: `Generate 3 engaging social media posts for ${business.name || 'our business'} (${business.type || 'local business'}) about: "${topic}". Create posts for Instagram, Facebook, and Google Business. Each post should be platform-appropriate. Include relevant hashtags for Instagram.`,
+        business_id: business.id,
         skip_confirmation: true,
       });
 
@@ -48,7 +55,7 @@ export default function Social() {
           const created = await entities.SocialPost.create({
             platform,
             content: res.final_summary?.substring(0, 200) || 'AI generated post',
-            business_id: 'demo',
+            business_id: business.id,
             ai_generated: true,
             status: 'pending_approval',
             topic,

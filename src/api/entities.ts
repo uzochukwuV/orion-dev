@@ -4,7 +4,46 @@
  */
 
 import { apiGet, apiPost, apiPut, apiDelete } from './client';
-export {apiPost, apiDelete, apiGet, apiPut}
+export { apiPost, apiDelete, apiGet, apiPut }
+
+// ---------------------------------------------------------------------------
+// Dashboard Stats API
+// ---------------------------------------------------------------------------
+
+export interface DashboardStats {
+  leads: {
+    total: number;
+    active: number;
+    won: number;
+    totalValue: number;
+  };
+  campaigns: {
+    total: number;
+    active: number;
+    pending: number;
+    revenue: number;
+    clicks: number;
+    impressions: number;
+  };
+  opportunities: {
+    total: number;
+    new: number;
+    highUrgency: number;
+    actedOn: number;
+    avgImpact: number;
+  };
+  agentRuns: Array<{
+    id: string;
+    agent_type: string;
+    status: string;
+    output_summary?: string;
+    createdAt: string;
+  }>;
+}
+
+export async function getDashboardStats(): Promise<DashboardStats> {
+  return apiGet<DashboardStats>('/api/dashboard/stats');
+}
 // ---------------------------------------------------------------------------
 // Shared helpers
 // ---------------------------------------------------------------------------

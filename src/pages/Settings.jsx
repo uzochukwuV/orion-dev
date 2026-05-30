@@ -1,6 +1,24 @@
 import { useState, useEffect } from 'react';
 import { entities } from '@/api/entities';
+import { useAuth } from '@/lib/useOrionAuth';
 import { Building2, CreditCard, Users, Link2, CheckCircle2, Loader2 } from 'lucide-react';
+
+const verticals = [
+  { value: 'salon', label: 'Salons & Beauty Studios' },
+  { value: 'gym', label: 'Gyms & Fitness Studios' },
+  { value: 'restaurant', label: 'Restaurants & Cafés' },
+  { value: 'clinic', label: 'Dental & Medical Clinics' },
+  { value: 'law', label: 'Law Firms (Small)' },
+  { value: 'realestate', label: 'Real Estate Agents' },
+  { value: 'hotel', label: 'Boutique Hotels & Airbnbs' },
+  { value: 'ecommerce', label: 'E-commerce Stores' },
+  { value: 'agency', label: 'Freelancers & Creative Agencies' },
+  { value: 'autorepair', label: 'Auto Repair Shops' },
+  { value: 'plumber', label: 'Plumbers' },
+  { value: 'electrician', label: 'Electricians' },
+  { value: 'cleaner', label: 'Cleaning Services' },
+  { value: 'other', label: 'Other' },
+];
 
 const plans = [
   { id: 'starter', label: 'Starter', price: '$49/mo', features: ['1 AI agent workflow', 'Market intelligence (weekly)', 'Basic CRM (25 leads)', 'Email campaigns'] },
@@ -13,11 +31,12 @@ const integrations = [
   { label: 'Facebook & Instagram', connected: false, icon: '📱' },
   { label: 'Google Ads', connected: false, icon: '📢' },
   { label: 'Mailchimp / Email', connected: true, icon: '✉️' },
-  { label: 'Twilio SMS', connected: false, icon: '💬' },
+  { label: 'WhatsApp Business', connected: false, icon: '💬', key: 'whatsapp' },
   { label: 'Stripe Payments', connected: true, icon: '💳' },
 ];
 
 export default function Settings() {
+  const { business: authBusiness } = useAuth();
   const [activeTab, setActiveTab] = useState('business');
   const [currentPlan, setCurrentPlan] = useState('growth');
   const [intStates, setIntStates] = useState(integrations.map(i => i.connected));
@@ -27,22 +46,20 @@ export default function Settings() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const loadBusiness = async () => {
-      try {
-        const data = await entities.Business.list();
-        if (data.length > 0) {
-          setBusiness(data[0]);
-        } else {
-          setBusiness({ name: '', city: '', phone: '', website: '', description: '' });
-        }
-      } catch (error) {
-        console.error('Failed to load business:', error);
-        setBusiness({ name: '', city: '', phone: '', website: '', description: '' });
-      }
+    // Use business from auth if available
+    if (authBusiness) {
+      setBusiness({
+        _id: authBusiness.id,
+        name: authBusiness.name || '',
+        city: authBusiness.city || '',
+        phone: authBusiness.phone || '',
+        website: authBusiness.website || '',
+        description: authBusiness.description || '',
+        type: authBusiness.type || 'salon'
+      });
       setLoading(false);
-    };
-    loadBusiness();
-  }, []);
+    }
+  }, [authBusiness]);
 
   const saveBusiness = async () => {
     if (!business || !business._id) return;
@@ -90,14 +107,26 @@ export default function Settings() {
             ].map(({ label, key }) => (
               <div key={key}>
                 <label className="text-[12px] font-inter font-medium text-muted-ash mb-1 block">{label}</label>
-                <input value={business[key]} onChange={e => setBusiness({...business, [key]: e.target.value})}
+                <input value={business[key] || ''} onChange={e => setBusiness({...business, [key]: e.target.value})}
                   className="w-full bg-cloud-canvas border border-ghost-border rounded-xl px-4 py-3 text-[13px] font-inter text-midnight-ink focus:outline-none focus:border-electric-violet transition-all" />
               </div>
             ))}
           </div>
           <div>
+            <label className="text-[12px] font-inter font-medium text-muted-ash mb-1 block">Business Type</label>
+            <select 
+              value={business.type || 'salon'} 
+              onChange={e => setBusiness({...business, type: e.target.value})}
+              className="w-full bg-cloud-canvas border border-ghost-border rounded-xl px-4 py-3 text-[13px] font-inter text-midnight-ink focus:outline-none focus:border-electric-violet transition-all">
+              {verticals.map(v => (
+                <option key={v.value} value={v.value}>{v.label}</option>
+              ))}
+            </select>
+            <p className="text-[11px] text-muted-ash mt-1">This determines Orion's intelligence focus and campaign strategies</p>
+          </div>
+          <div>
             <label className="text-[12px] font-inter font-medium text-muted-ash mb-1 block">Description</label>
-            <textarea rows={3} value={business.description} onChange={e => setBusiness({...business, description: e.target.value})}
+            <textarea rows={3} value={business.description || ''} onChange={e => setBusiness({...business, description: e.target.value})}
               className="w-full bg-cloud-canvas border border-ghost-border rounded-xl px-4 py-3 text-[13px] font-inter text-midnight-ink focus:outline-none focus:border-electric-violet transition-all resize-none" />
           </div>
           <button onClick={saveBusiness} disabled={saving}
@@ -146,14 +175,46 @@ export default function Settings() {
             <div key={i} className="flex items-center justify-between py-3 border-b border-ghost-border last:border-0">
               <div className="flex items-center gap-3">
                 <span className="text-[18px]">{int.icon}</span>
-                <p className="text-[13px] font-inter font-medium text-midnight-ink">{int.label}</p>
+                <div>
+                  <p className="text-[13px] font-inter font-medium text-midnight-ink">{int.label}</p>
+                  {int.key === 'whatsapp' && (
+                    <p className="text-[10px] text-muted-ash">Chat with customers, send campaigns</p>
+                  )}
+                </div>
               </div>
-              <button onClick={() => setIntStates(prev => prev.map((s, idx) => idx === i ? !s : s))}
-                className={`px-4 py-1.5 rounded-full text-[12px] font-inter font-medium transition-all ${intStates[i] ? 'bg-green-50 text-green-600 border border-green-100' : 'bg-electric-violet text-white hover:opacity-90'}`}>
-                {intStates[i] ? '✓ Connected' : 'Connect'}
-              </button>
+              {int.key === 'whatsapp' ? (
+                <button 
+                  onClick={() => alert('WhatsApp Setup:\n1. Create Meta Business Account\n2. Set up WhatsApp Business\n3. Get Phone Number ID & Access Token\n4. Add to .env file\n\nSee docs/whatsapp-setup.md')}
+                  className="px-4 py-1.5 rounded-full text-[12px] font-inter font-medium transition-all bg-purple-100 text-purple-600 border border-purple-200 hover:bg-purple-200">
+                  Setup WhatsApp
+                </button>
+              ) : (
+                <button onClick={() => setIntStates(prev => prev.map((s, idx) => idx === i ? !s : s))}
+                  className={`px-4 py-1.5 rounded-full text-[12px] font-inter font-medium transition-all ${intStates[i] ? 'bg-green-50 text-green-600 border border-green-100' : 'bg-electric-violet text-white hover:opacity-90'}`}>
+                  {intStates[i] ? '✓ Connected' : 'Connect'}
+                </button>
+              )}
             </div>
           ))}
+          
+          {/* WhatsApp Preview Section */}
+          <div className="mt-6 p-4 bg-purple-50 rounded-xl border border-purple-100">
+            <h4 className="font-montserrat font-medium text-[14px] text-purple-900 mb-2">WhatsApp AI Assistant Preview</h4>
+            <div className="space-y-2 text-[12px] text-purple-800">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 bg-purple-400 rounded-full"></span>
+                <span>AI greets new customers automatically</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 bg-purple-400 rounded-full"></span>
+                <span>Handles reservations, menu questions, hours</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 bg-purple-400 rounded-full"></span>
+                <span>Sends campaign messages to leads</span>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 

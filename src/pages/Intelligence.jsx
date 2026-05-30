@@ -1,7 +1,6 @@
-
-import { base44 } from '@/api/base44Client';
 import { useState, useEffect } from 'react';
 import { entities, apiPost } from '@/api/entities';
+import { useAuth } from '@/lib/useOrionAuth';
 import { Zap, TrendingUp, AlertTriangle, RefreshCw, ArrowRight, Loader2, Search } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -14,24 +13,35 @@ const urgencyColors = {
 };
 
 export default function Intelligence() {
+  const { business } = useAuth();
   const [opportunities, setOpportunities] = useState([]);
   const [loading, setLoading] = useState(true);
   const [scanning, setScanning] = useState(false);
   const [filter, setFilter] = useState('all');
 
   const loadOpportunities = async () => {
-    const data = await entities.Opportunity.list('-created_at', 20);
-    setOpportunities(data);
-    setLoading(false);
+    try {
+      const data = await entities.Opportunity.list('-createdAt', 20);
+      setOpportunities(data);
+    } catch (err) {
+      console.error('Failed to load opportunities:', err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => { loadOpportunities(); }, []);
 
   const runScan = async () => {
+    if (!business?.id) {
+      console.error('No business ID available');
+      return;
+    }
+    
     setScanning(true);
     try {
       const res = await apiPost('/api/intelligence/scan', {
-        business_id: 'demo',
+        business_id: business.id,
         focus: 'competitor_pricing,trending_services,market_gaps,review_sentiment',
       });
 
@@ -39,7 +49,6 @@ export default function Intelligence() {
         for (const opp of res.opportunities) {
           const created = await entities.Opportunity.create({
             ...opp,
-            business_id: 'demo',
             status: 'new'
           });
           setOpportunities(prev => [created, ...prev]);
@@ -47,7 +56,6 @@ export default function Intelligence() {
       }
     } catch (error) {
       console.error('Failed to run intelligence scan:', error);
-      alert('Failed to run scan');
     }
     setScanning(false);
   };
@@ -115,7 +123,7 @@ export default function Intelligence() {
             {filtered.map((opp, i) => {
               const Icon = categoryIcons[opp.category] || Zap;
               return (
-                <motion.div key={opp.id || i} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="card-elevated">
+                <motion.div key={opp.id || opp._id || i} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="card-elevated">
                   <div className="flex items-start gap-4">
                     <div className="w-10 h-10 bg-electric-violet/10 rounded-lg flex items-center justify-center flex-shrink-0">
                       <Icon className="w-5 h-5 text-electric-violet" />

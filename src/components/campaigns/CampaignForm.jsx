@@ -1,15 +1,17 @@
 import { useState } from 'react';
 import { X } from 'lucide-react';
-import { base44 } from '@/api/base44Client';
+import { entities } from '@/api/entities';
+import { useAuth } from '@/lib/useOrionAuth';
 import { motion } from 'framer-motion';
 
 export default function CampaignForm({ onClose, onCreated }) {
+  const { business } = useAuth();
   const [form, setForm] = useState({ name: '', type: 'email', objective: '', headline: '', body_copy: '', cta: '', budget: '' });
   const [saving, setSaving] = useState(false);
 
   const save = async () => {
     setSaving(true);
-    const created = await base44.entities.Campaign.create({ ...form, business_id: 'demo', status: 'draft', budget: Number(form.budget) || 0 });
+    const created = await entities.Campaign.create({ ...form, business_id: business?.id, status: 'draft', budget: Number(form.budget) || 0 });
     onCreated(created);
     setSaving(false);
   };

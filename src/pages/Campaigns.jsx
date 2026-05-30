@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { entities, apiPost } from '@/api/entities';
+import { useAuth } from '@/lib/useOrionAuth';
 import { Plus, Megaphone, Loader2, Eye, Pause, Play, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import CampaignForm from '../components/campaigns/CampaignForm';
@@ -23,6 +24,7 @@ const typeColors = {
 };
 
 export default function Campaigns() {
+  const { business } = useAuth();
   const [campaigns, setCampaigns] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -37,22 +39,28 @@ export default function Campaigns() {
   useEffect(() => { load(); }, []);
 
   const generateCampaign = async () => {
+    if (!business?.id) {
+      console.error('No business ID available');
+      return;
+    }
+    
     setGenerating(true);
     try {
       const res = await apiPost('/api/agents/run', {
-        task: 'Generate a high-converting marketing campaign for a local hair salon targeting women 25-45 in the area. Create a specific, actionable campaign with compelling copy.',
-        business_id: 'demo',
+        task: `Generate a high-converting marketing campaign for ${business.name || 'our business'} (${business.type || 'local business'}) in ${business.city || 'the area'}. Create a specific, actionable campaign with compelling copy suitable for ${business.type || 'local business'} businesses.`,
+        business_id: business.id,
         skip_confirmation: true,
       });
       
-      // Extract campaign data from response (format varies based on agent output)
+      // Extract campaign data from response
       const campaignData = {
-        business_id: 'demo',
+        business_id: business.id,
         name: res?.final_summary?.substring(0, 100) || 'AI Generated Campaign',
         type: 'email',
         status: 'pending_review',
         ai_generated: true,
         objective: res?.final_summary || 'AI generated campaign',
+        headline: res?.final_summary?.substring(0, 80),
       };
       
       const created = await entities.Campaign.create(campaignData);

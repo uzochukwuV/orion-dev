@@ -7,7 +7,7 @@
  * Usage:
  *   const result = await runStrategyAgent({
  *     task: "Generate growth strategy",
- *     businessContext: { business_id: 'demo', name: 'TechCorp' },
+ *     businessContext: { business_id: 'demo', name: 'TechCorp', type: 'salon' },
  *     researchFindings: { findings: [...], summary: '...' },
  *     onStep: ({ agent, action, status }) => console.log(action)
  *   });
@@ -17,6 +17,7 @@ import { z } from 'zod';
 import { getLLM } from '../llm/providers.js';
 import { LeadModel } from '../db/models/Lead.js';
 import { OpportunityModel } from '../db/models/Opportunity.js';
+import { getPlaybook, buildStrategyPrompt, type Vertical } from '../playbooks/index.js';
 
 // ─── Schemas ─────────────────────────────────────────────────────────────────
 
@@ -85,7 +86,11 @@ export async function runStrategyAgent({
   researchFindings?: ResearchFindings;
   onStep?: (step: StepCallback) => void;
 }): Promise<StrategyOutput> {
-  onStep?.({ agent: 'Strategy Agent', action: 'Analyzing business data…', status: 'running' });
+  // Get vertical from businessContext
+  const vertical = (businessContext.type as Vertical) || 'salon';
+  const playbook = getPlaybook(vertical);
+  
+  onStep?.({ agent: 'Strategy Agent', action: `Analyzing data for ${playbook.display_name}…`, status: 'running' });
 
   try {
     const llm = getLLM();
@@ -102,7 +107,7 @@ export async function runStrategyAgent({
       .limit(10)
       .lean();
 
-    // Build strategy prompt
+    // Build strategy prompt using playbook
     const leadSummary = recentLeads.length > 0
       ? `Recent leads (${recentLeads.length}): ${recentLeads.map(l => l.name || l.email).join(', ')}`
       : 'No recent leads';
@@ -111,38 +116,36 @@ export async function runStrategyAgent({
       ? `Active opportunities (${recentOpportunities.length}): ${recentOpportunities.map(o => o.title).join(', ')}`
       : 'No recent opportunities';
 
-    const researchContext = researchFindings?.summary
-      ? `Research insights: ${researchFindings.summary}`
-      : 'No research data provided';
+    const strategyPrompt = buildStrategyPrompt(
+      task,
+      vertical,
+      {
+        name: businessContext.name || 'Unknown',
+        type: playbook.display_name,
+        city: businessContext.city || 'Unknown',
+      },
+      researchFindings
+    );
 
-    const strategyPrompt = `You are a strategic business consultant. Develop a strategy based on:
+    // Add local business context to the prompt
+    const localContextPrompt = `${strategyPrompt}
 
-Task: ${task}
-
-Business Context:
-- Business: ${businessContext.name || 'Unknown'}
-- Type: ${businessContext.type || 'General'}
-- City: ${businessContext.city || 'Unknown'}
-
-Current Data:
+Local Business Data:
 - ${leadSummary}
 - ${opportunitySummary}
 
-${researchContext}
+KPIs for this vertical:
+- Primary: ${playbook.kpis.primary.join(', ')}
+- Secondary: ${playbook.kpis.secondary.join(', ')}
 
-Generate 3-5 strategic recommendations with:
-1. Clear title and rationale
-2. Priority level (low, medium, high)
-3. Estimated effort (low, medium, high)
-
-Also create an action plan with specific next steps.`;
+Generate recommendations with clear rationale and action plans.`;
 
     const structuredLLM = llm.withStructuredOutput(STRATEGY_OUTPUT_SCHEMA);
-    const result = await structuredLLM.invoke(strategyPrompt);
+    const result = await structuredLLM.invoke(localContextPrompt);
 
     onStep?.({
       agent: 'Strategy Agent',
-      action: `Generated ${result.recommendations.length} recommendations ✓`,
+      action: `Generated ${result.recommendations.length} recommendations for ${playbook.display_name} ✓`,
       status: 'complete',
     });
 

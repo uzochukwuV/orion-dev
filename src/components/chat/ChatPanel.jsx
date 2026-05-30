@@ -4,9 +4,11 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { apiPost } from '@/api/entities';
+import { useAuth } from '@/lib/useOrionAuth';
 import { Send, Loader2, X } from 'lucide-react';
 
-export default function ChatPanel({ isOpen, onClose, businessId = 'demo' }) {
+export default function ChatPanel({ isOpen, onClose }) {
+  const { business } = useAuth();
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -23,6 +25,10 @@ export default function ChatPanel({ isOpen, onClose, businessId = 'demo' }) {
 
   const sendMessage = async () => {
     if (!input.trim()) return;
+    if (!business?.id) {
+      console.error('No business ID available');
+      return;
+    }
 
     const userMessage = input;
     setInput('');
@@ -32,7 +38,7 @@ export default function ChatPanel({ isOpen, onClose, businessId = 'demo' }) {
     try {
       const res = await apiPost('/api/agents/chat', {
         message: userMessage,
-        business_id: businessId,
+        business_id: business.id,
         session_id: sessionId,
       });
 
@@ -40,7 +46,7 @@ export default function ChatPanel({ isOpen, onClose, businessId = 'demo' }) {
         setSessionId(res.session_id);
       }
 
-      setMessages(prev => [...prev, { role: 'assistant', content: res.reply, timestamp: new Date().toISOString() }]);
+      setMessages(prev => [...prev, { role: 'assistant', content: res.reply || res.response, timestamp: new Date().toISOString() }]);
     } catch (error) {
       console.error('Failed to send message:', error);
       setMessages(prev => [...prev, { role: 'system', content: 'Failed to send message. Please try again.', timestamp: new Date().toISOString() }]);
