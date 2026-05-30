@@ -32,7 +32,13 @@ export default function Signup() {
     const result = await register(email, password, name);
     
     if (result.success) {
-      navigate('/dashboard');
+      // NEW users go to onboarding to set up their business
+      // Existing users with completed onboarding go to dashboard
+      if (result.business && result.business.onboarding_complete) {
+        navigate('/dashboard');
+      } else {
+        navigate('/onboarding');
+      }
     } else {
       setError(result.error || 'Registration failed');
     }
