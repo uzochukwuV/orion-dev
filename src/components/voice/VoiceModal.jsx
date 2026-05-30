@@ -261,7 +261,7 @@ export default function VoiceModal({ open, onClose, onTranscript }) {
               <p className="text-[11px] text-muted-ash">AI-powered voice assistant</p>
             </div>
           </div>
-          <button onClick={stopAll} className="p-1 hover:bg-cloud-canvas rounded-lg transition-all">
+          <button onClick={() => { stopAll(); onClose?.(); }} className="p-1 hover:bg-cloud-canvas rounded-lg transition-all">
             <X className="w-5 h-5 text-muted-ash" />
           </button>
         </div>
@@ -409,7 +409,7 @@ export default function VoiceModal({ open, onClose, onTranscript }) {
           )}
 
           <button
-            onClick={stopAll}
+            onClick={() => { stopAll(); onClose?.(); }}
             className="px-4 py-3 bg-cloud-canvas text-midnight-ink rounded-lg text-[13px] font-inter font-medium hover:bg-ghost-border transition-all"
           >
             Close

@@ -31,9 +31,24 @@ function AuthLoading() {
   )
 }
 
+// Redirect logged-in users away from auth pages
+function AuthRedirect({ children }) {
+  const { isAuthenticated, loading } = useAuth();
+
+  if (loading) {
+    return <AuthLoading />;
+  }
+
+  if (isAuthenticated) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  return children;
+}
+
 // Wrapper for protected routes that uses our auth
 function ProtectedRouteContent({ children }) {
-  const { isAuthenticated, loading, business } = useAuth()
+  const { isAuthenticated, loading } = useAuth()
 
   if (loading) {
     return <AuthLoading />
@@ -43,11 +58,7 @@ function ProtectedRouteContent({ children }) {
     return <Navigate to="/login" replace />
   }
 
-  // Redirect to onboarding if business onboarding is not complete
-  if (business && !business.onboarding_complete) {
-    return <Navigate to="/onboarding" replace />
-  }
-
+  // Existing logged-in users go to dashboard, no forced onboarding
   return children
 }
 
@@ -57,10 +68,10 @@ export default function App() {
       <AuthProvider>
         <Router>
           <Routes>
-            {/* Public routes */}
-            <Route path="/" element={<Landing />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<Signup />} />
+            {/* Public routes - redirect logged-in users to dashboard */}
+            <Route path="/" element={<AuthRedirect><Landing /></AuthRedirect>} />
+            <Route path="/login" element={<AuthRedirect><Login /></AuthRedirect>} />
+            <Route path="/signup" element={<AuthRedirect><Signup /></AuthRedirect>} />
 
             {/* Protected routes */}
             <Route
