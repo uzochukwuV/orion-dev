@@ -24,5 +24,4 @@
 
 [functions]
   node_bundler = "esbuild"
-  included_paths = ["netlify/functions/**"]
-  external_nodes_modules = ["serverless-http", "express", "mongoose", "jsonwebtoken", "cookie-parser"]
+  external_node_modules = ["serverless-http", "express", "mongoose", "jsonwebtoken", "cookie-parser"]
