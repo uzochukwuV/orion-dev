@@ -223,7 +223,9 @@ async function initSpeechmaticsClient(
   ws: WebSocket,
   apiKey: string
 ): Promise<void> {
-  const client = new RealtimeClientType({
+// Use require for Speechmatics client (no types available) (no types available)
+  const RealtimeClient = require("@speechmatics/real-time-client").RealtimeClient;
+  const client = new RealtimeClient({
     apiKey,
     ssl: true,
   });
