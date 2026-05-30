@@ -4,24 +4,39 @@ import { Zap, TrendingUp, Users, Share2, Megaphone, Bot, ArrowRight, X, ChevronR
 import { motion } from 'framer-motion';
 
 const logos = [
-  'Bella Salon', 'FitLife Gym', 'Glow Clinic', 'Casa Eats', 'PlumbPro',
-  'SparkElectric', 'GreenScape', 'PawCare', 'StyleHub', 'VoltFix',
-  'FreshClean', 'TasteKitchen', 'FixRight', 'BloomPets', 'NailBar',
+  'La Cucina', 'Bella Studio', 'GymPro', 'MedClinic', 'LawBasics', 
+  'Salon Elegance', 'FitZone', 'DentalCare', 'RealEstate Pro', 'HotelBoutique',
+  'AutoFix', 'Cafe Central', 'BeautyHub', 'WellnessFirst', 'TechRepairs',
 ];
 
 const capabilities = [
-  { icon: TrendingUp, label: 'Market Intelligence', color: 'bg-electric-violet/10 text-electric-violet', desc: 'Scans competitors & trends daily' },
-  { icon: Megaphone, label: 'Auto Campaigns', color: 'bg-green-50 text-green-600', desc: 'AI-generated, ready to launch' },
-  { icon: Users, label: 'Lead Scoring', color: 'bg-orange-50 text-orange-500', desc: 'Score & follow-up automatically' },
-  { icon: Share2, label: 'Social Media', color: 'bg-pink-50 text-pink-500', desc: 'A week of posts in 30 seconds' },
-  { icon: Bot, label: 'AI Agents', color: 'bg-blue-50 text-blue-500', desc: '4 agents working 24/7' },
-  { icon: BarChart3, label: 'Analytics', color: 'bg-purple-50 text-purple-500', desc: 'Revenue attribution & insights' },
+  { icon: TrendingUp, label: 'Market Intelligence', color: 'bg-electric-violet/10 text-electric-violet', desc: 'Scans competitors, pricing trends, and local market gaps — updated daily' },
+  { icon: Megaphone, label: 'AI Campaigns', color: 'bg-green-50 text-green-600', desc: 'Generate targeted campaigns in seconds. Launch with one click.' },
+  { icon: Users, label: 'Lead Management', color: 'bg-orange-50 text-orange-500', desc: 'Score, track, and follow up leads automatically with AI' },
+  { icon: Share2, label: 'Social Media', color: 'bg-pink-50 text-pink-500', desc: 'A week of posts in 30 seconds. Instagram, Facebook, and more.' },
+  { icon: Bot, label: 'AI Agents', color: 'bg-blue-50 text-blue-500', desc: '4 specialized agents working 24/7 — Research, Strategy, Execution, Voice' },
+  { icon: BarChart3, label: 'Analytics', color: 'bg-purple-50 text-purple-500', desc: 'Track revenue attribution, campaign ROI, and growth trends' },
+  { icon: MessageSquare, label: 'WhatsApp Integration', color: 'bg-emerald-50 text-emerald-600', desc: 'Chat with customers, send campaigns, and automate responses' },
+  { icon: Brain, label: 'Voice Interface', color: 'bg-amber-50 text-amber-600', desc: 'Talk to Orion hands-free. Update your CRM while on the go.' },
+];
+
+const verticals = [
+  { name: 'Salons & Beauty', emoji: '💇', desc: 'Fill empty slots, win back dormant clients' },
+  { name: 'Gyms & Fitness', emoji: '🏋️', desc: 'Reduce churn, convert trials to members' },
+  { name: 'Restaurants & Cafés', emoji: '🍽️', desc: 'Fill slow nights, boost Google reviews' },
+  { name: 'Clinics & Dental', emoji: '🏥', desc: 'Reduce no-shows, automate recalls' },
+  { name: 'Law Firms', emoji: '⚖️', desc: 'Speed-to-lead, nurture referral partners' },
+  { name: 'Real Estate', emoji: '🏠', desc: 'Score leads, reactivate past clients' },
+  { name: 'Hotels & Airbnbs', emoji: '🏨', desc: 'Dynamic pricing, direct booking campaigns' },
+  { name: 'E-commerce', emoji: '🛒', desc: 'Cart recovery, inventory forecasting' },
+  { name: 'Auto Repair', emoji: '🔧', desc: 'Seasonal campaigns, review generation' },
+  { name: 'Agencies', emoji: '💼', desc: 'Pipeline alerts, proposal follow-up' },
 ];
 
 const steps = [
-  { n: '01', title: 'Tell Orion about your business', desc: 'Business name, category, and location. Done in under a minute.' },
-  { n: '02', title: 'See your first market insight', desc: "Orion scans live web data and shows what's happening with competitors and trends right now." },
-  { n: '03', title: 'Take action instantly', desc: 'Launch a campaign, follow up a lead, or generate social posts — all with one click.' },
+  { n: '01', title: 'Tell Orion about your business', desc: 'Business name, type, and location. Orion auto-configures for your industry vertical.' },
+  { n: '02', title: 'AI starts scanning your market', desc: "Live competitive intelligence, pricing gaps, seasonal opportunities — all automatically." },
+  { n: '03', title: 'Launch growth actions instantly', desc: 'Run campaigns, follow up leads, post to social — all from one dashboard.' },
 ];
 
 const testimonials = [
@@ -171,12 +186,12 @@ export default function Landing() {
         <div className="flex flex-col lg:flex-row lg:items-end gap-10 lg:gap-20 mb-12">
           <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
             className="font-montserrat font-bold text-[44px] md:text-[58px] leading-[1.05] tracking-[-0.03em] text-midnight-ink flex-1">
-            Deploy AI agents that grow your <span className="text-electric-violet">local business</span>
+            AI growth agents for <span className="text-electric-violet">small & medium businesses</span>
           </motion.h1>
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.1 }}
-            className="flex flex-col gap-5 lg:max-w-[320px] shrink-0">
+            className="flex flex-col gap-5 lg:max-w-[360px] shrink-0">
             <p className="text-[15px] text-muted-ash font-inter leading-relaxed">
-              Build, deploy, and improve AI agents for market intelligence, campaigns, leads, and social — all in one platform.
+              Orion deploys specialized AI agents that find opportunities, build campaigns, manage leads, and grow your revenue — automatically.
             </p>
             <div className="flex items-center gap-3">
               <Link to="/onboarding" className="inline-flex items-center gap-1.5 px-5 py-2.5 bg-electric-violet rounded-lg text-[13px] font-inter font-medium text-white hover:opacity-90 transition-all whitespace-nowrap">
@@ -191,7 +206,7 @@ export default function Landing() {
 
         {/* Logo marquee */}
         <div className="relative overflow-hidden mb-12">
-          <div className="text-[11px] text-muted-ash font-inter mb-3 text-center">Trusted by local businesses everywhere</div>
+          <div className="text-[11px] text-muted-ash font-inter mb-3 text-center">Trusted by 10,000+ SMBs across Europe and Africa</div>
           <div className="flex overflow-hidden">
             <div className="flex gap-8 animate-[marquee_30s_linear_infinite] shrink-0">
               {[...logos, ...logos].map((logo, i) => (
@@ -217,7 +232,7 @@ export default function Landing() {
           {[
             { value: '2 min', label: 'to first insight' },
             { value: '4×', label: 'avg revenue growth' },
-            { value: '10k+', label: 'businesses running' },
+            { value: '10k+', label: 'SMBs running' },
             { value: '24/7', label: 'AI agents working' },
           ].map((s, i) => (
             <div key={i}>
@@ -225,6 +240,27 @@ export default function Landing() {
               <p className="text-[12px] text-muted-ash font-inter mt-1">{s.label}</p>
             </div>
           ))}
+        </div>
+      </section>
+
+      {/* Industry Verticals */}
+      <section className="py-24 px-8">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-12">
+            <p className="text-[12px] font-inter font-medium text-electric-violet mb-2">Industries</p>
+            <h2 className="font-montserrat font-bold text-[32px] text-midnight-ink tracking-[-0.02em] mb-4">Built for your business type</h2>
+            <p className="text-[14px] text-muted-ash font-inter max-w-xl mx-auto">Orion learns the specific pain points of each industry — from appointment gaps in salons to seasonal demand in auto repair.</p>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+            {verticals.map((v, i) => (
+              <motion.div key={i} initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.04 }}
+                className="p-4 bg-paper-white border border-ghost-border rounded-xl hover:border-electric-violet/30 hover:shadow-sm transition-all cursor-pointer text-center">
+                <div className="text-2xl mb-2">{v.emoji}</div>
+                <p className="font-inter font-medium text-[12px] text-midnight-ink mb-1">{v.name}</p>
+                <p className="text-[10px] text-muted-ash font-inter">{v.desc}</p>
+              </motion.div>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -315,8 +351,8 @@ export default function Landing() {
       {/* Final CTA */}
       <section className="py-24 px-8 bg-cloud-ink">
         <div className="max-w-3xl mx-auto text-center">
-          <h2 className="font-montserrat font-bold text-[40px] tracking-[-0.02em] mb-4">Your business starts growing today.</h2>
-          <p className="t font-inter text-[15px] mb-10">Join thousands of local businesses using Orion to win more customers.</p>
+          <h2 className="font-montserrat font-bold text-[40px] tracking-[-0.02em] mb-4">Your SMB starts growing today.</h2>
+          <p className="t font-inter text-[15px] mb-10">Join 10,000+ small and medium businesses using Orion to win more customers.</p>
           <div className="flex items-center justify-center gap-4 flex-wrap">
             <Link to="/onboarding" className="inline-flex text-white items-center gap-2 px-8 py-4 bg-electric-violet rounded-lg text-[14px] font-inter font-medium  hover:opacity-90 transition-all">
               Start for free <ArrowRight className="w-4 h-4" />
@@ -342,7 +378,7 @@ export default function Landing() {
             <a key={item} href="#" className="text-[12px]  font-inter hover:text-white/70 transition-all">{item}</a>
           ))}
         </div>
-        <p className="text-[12px]  font-inter">© 2026 Orion AI. Built for local businesses.</p>
+        <p className="text-[12px]  font-inter">© 2026 Orion AI. Built for SMBs in Europe & Africa.</p>
       </footer>
     </div>
   );
