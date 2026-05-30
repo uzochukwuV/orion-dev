@@ -31,6 +31,16 @@ export function createAgentRoutes(): Router {
     return 'demo';  // Fallback for non-authenticated or demo mode
   };
 
+  // ─── Helper to get LLM (with demo mode fallback) ────────────────────────
+  
+  const getLLMOrDemo = () => {
+    try {
+      return getLLM();
+    } catch (error) {
+      return null;  // No LLM configured
+    }
+  };
+
   // ─── POST /api/agents/run ───────────────────────────────────────────────────
 
   /**
@@ -281,7 +291,14 @@ export function createAgentRoutes(): Router {
         return res.status(400).json({ error: 'message is required' });
       }
 
-      const llm = getLLM();
+      // Try to get LLM, return error if not configured
+      const llm = getLLMOrDemo();
+      if (!llm) {
+        return res.status(503).json({ 
+          error: 'AI chat is not configured on this server. Set AIMLAPI_KEY or TOKENROUTER_API_KEY in your environment variables.',
+          reply: 'AI chat is not available. Please configure an LLM provider to enable this feature.'
+        });
+      }
 
       // Fetch or create chat session
       let session = session_id

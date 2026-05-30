@@ -42,6 +42,17 @@ export default function ChatPanel({ open, onClose }) {
         session_id: sessionId,
       });
 
+      // Check if AI is not configured
+      if (res.reply && res.reply.includes && res.reply.includes('not configured')) {
+        setMessages(prev => [...prev, { 
+          role: 'system', 
+          content: 'AI chat is not available on this server. Please configure AIMLAPI_KEY or TOKENROUTER_API_KEY.', 
+          timestamp: new Date().toISOString() 
+        }]);
+        setLoading(false);
+        return;
+      }
+
       if (res.session_id && !sessionId) {
         setSessionId(res.session_id);
       }
