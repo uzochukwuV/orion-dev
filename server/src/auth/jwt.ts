@@ -1,6 +1,6 @@
 /**
  * JWT Authentication Utilities
- * 
+ *
  * Handles token creation and verification for email/password auth.
  */
 
@@ -30,7 +30,7 @@ export function createToken(userId: string, email: string, businessId?: string):
     { userId, email, businessId },
     JWT_SECRET,
     {
-      expiresIn: JWT_EXPIRES_IN,
+      expiresIn: JWT_EXPIRES_IN as jwt.SignOptions['expiresIn'],
       issuer: JWT_ISSUER,
       audience: JWT_AUDIENCE,
     }
@@ -69,10 +69,10 @@ export function extractToken(authHeader: string | undefined): string | null {
 export function getTokenExpiry(): number {
   const match = JWT_EXPIRES_IN.match(/^(\d+)([dhms])$/);
   if (!match) return 7 * 24 * 60 * 60; // Default 7 days in seconds
-  
+
   const value = parseInt(match[1]);
   const unit = match[2];
-  
+
   switch (unit) {
     case 's': return value;
     case 'm': return value * 60;

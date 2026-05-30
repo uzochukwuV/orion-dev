@@ -1,6 +1,6 @@
 /**
  * User Model — Email/password authentication (replaces ClerkUser)
- * 
+ *
  * Stores user accounts with secure password hashing using bcrypt.
  * Users can own multiple businesses.
  */
@@ -31,6 +31,8 @@ export interface IUser extends Document {
   updated_at: Date;
   verified_at?: Date;
   last_login?: Date;
+  // Instance methods
+  verifyPassword(password: string): Promise<boolean>;
 }
 
 const userSchema = new Schema<IUser>(
@@ -47,7 +49,7 @@ const userSchema = new Schema<IUser>(
       required: true,
     },
     name: String,
-    
+
     business_id: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Business',
@@ -84,10 +86,10 @@ const userSchema = new Schema<IUser>(
 // Hash password before saving
 userSchema.pre('save', async function () {
   this.updated_at = new Date();
-  
+
   // Only hash if password is modified
   if (!this.isModified('password_hash')) return;
-  
+
   // If password_hash is not already a bcrypt hash (starts with $2)
   if (!this.password_hash.startsWith('$2')) {
     this.password_hash = await bcrypt.hash(this.password_hash, SALT_ROUNDS);
