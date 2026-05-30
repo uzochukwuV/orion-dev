@@ -47,7 +47,7 @@ app.get('/api/whatsapp/webhook', (req: Request, res: Response) => {
   const token = req.query['hub.verify_token'] as string;
   const challenge = req.query['hub.challenge'] as string;
   
-  const verifyToken = process.env.WHATSAPP_WEBHOOK_VERIFY_TOKEN || 'orion-whatsapp-verify-token';
+  const verifyToken = process.env.WHATSAPP_WEBHOOK_VERIFY_TOKEN || '';
   
   if (mode === 'subscribe' && token === verifyToken) {
     console.log('[WhatsApp] Webhook verified');
