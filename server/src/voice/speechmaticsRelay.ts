@@ -22,13 +22,13 @@
 import { WebSocketServer, WebSocket } from 'ws';
 import { Server as HTTPServer } from 'http';
 // Speechmatics client - use any since package has no types
-const RealtimeClientType: any = null;
+
 
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
 interface VoiceClientState {
-  speechmaticsClient: RealtimeClientType | null;
+  speechmaticsClient: any;
   isConnected: boolean;
   sessionId: string;
   businessId: string;
