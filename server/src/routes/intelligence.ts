@@ -58,7 +58,17 @@ export function createIntelligenceRoutes(): Router {
    */
   router.post('/scan', verifyJWT, async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { business_id = 'demo', focus = 'general', competitors = [] } = req.body;
+      // Get business_id from authenticated user or request body
+      const user = req.user as any;
+      let { business_id, focus = 'general', competitors = [] } = req.body;
+      
+      if (!business_id && user?.businessId) {
+        business_id = user.businessId;
+      }
+      
+      if (!business_id) {
+        return res.status(400).json({ error: 'business_id is required' });
+      }
 
       // Fetch business for context
       const business = await BusinessModel.findById(business_id).lean();
