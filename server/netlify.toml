@@ -4,7 +4,6 @@
   publish = "dist"
   functions = "netlify/functions"
 
-# Redirect all /api/* requests to serverless function
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/server/:splat"
@@ -16,7 +15,6 @@
   to = "/.netlify/functions/server/health"
   status = 200
 
-# SPA fallback
 [[redirects]]
   from = "/*"
   to = "/index.html"
