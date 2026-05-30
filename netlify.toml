@@ -1,15 +1,38 @@
 [build]
-  command = "cd server && npm install && npm run build"
+  command = "npm install && npm --prefix server run build && npm run build"
   functions = "netlify/functions"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+# API and health check - route to serverless function
+[[redirects]]
+  from = "/health"
+  to = "/.netlify/functions/server"
+  status = 200
+  force = true
 
 [[redirects]]
   from = "/api/*"
-  to = "/.netlify/functions/api"
+  to = "/.netlify/functions/server"
   status = 200
   force = true
 
+# SPA fallback - send all unmatched routes to index.html
 [[redirects]]
-  from = "/health"
-  to = "/.netlify/functions/api"
+  from = "/*"
+  to = "/index.html"
   status = 200
-  force = true
+  conditions = { Role = ["vite"] }
+
+[dev]
+  command = "npm run dev"
+  port = 8888
+  framework = "vite"
+
+[context.production]
+  environment = { NODE_ENV = "production" }
+  
+[context.deploy-preview]
+  environment = { NODE_ENV = "development" }
