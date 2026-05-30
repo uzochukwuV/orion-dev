@@ -7,7 +7,7 @@ import { apiPost } from '@/api/entities';
 import { useAuth } from '@/lib/useOrionAuth';
 import { Send, Loader2, X } from 'lucide-react';
 
-export default function ChatPanel({ isOpen, onClose }) {
+export default function ChatPanel({ open, onClose }) {
   const { business } = useAuth();
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
@@ -54,7 +54,7 @@ export default function ChatPanel({ isOpen, onClose }) {
     setLoading(false);
   };
 
-  if (!isOpen) return null;
+  if (!open) return null;
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-end z-50">
