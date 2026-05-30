@@ -39,11 +39,14 @@
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    border-color: hsl(var(--border));
+    outline-color: hsl(var(--ring) / 0.5);
   }
 
   body {
-    @apply bg-[#f5f5f5] text-[#202020] font-inter;
+    background-color: #f5f5f5;
+    color: #202020;
+    font-family: 'Inter', sans-serif;
   }
 
   h1, h2, h3, h4 {
