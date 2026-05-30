@@ -2,7 +2,9 @@
   "name": "orion-dev",
   "scripts": {
     "dev": "vercel dev",
-    "build": "npm --prefix server run build && vite build",
+    "build": "vite build",
+    "build:server": "npm --prefix server run build",
+    "build:frontend": "vite build",
     "start": "node server/dist/index.js"
   },
   "devDependencies": {
