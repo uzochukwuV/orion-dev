@@ -42,7 +42,9 @@ const corsOptions: cors.CorsOptions = {
       'http://localhost:5173',
       'http://localhost:3000',
       'https://orion-client-ten.vercel.app',
+      'https://orion-dev-seven.vercel.app',
       'https://orion-client-git-*.vercel.app', // Preview deployments
+      /https:\/\/.*\.vercel\.app$/, // All Vercel preview apps
     ];
     
     // Allow requests with no origin (like mobile apps or curl)
@@ -50,7 +52,10 @@ const corsOptions: cors.CorsOptions = {
     
     // Check if origin matches allowed patterns
     const isAllowed = allowedOrigins.some(allowed => {
-      if (allowed.includes('*')) {
+      if (allowed instanceof RegExp) {
+        return allowed.test(origin);
+      }
+      if (typeof allowed === 'string' && allowed.includes('*')) {
         const regex = new RegExp('^' + allowed.replace('*', '.*') + '$');
         return regex.test(origin);
       }
