@@ -1,10 +1,8 @@
 import { useState, useEffect } from 'react';
 import { entities } from '@/api/entities';
+import { useAuth } from '@/lib/useOrionAuth';
 import { Building2, CreditCard, Users, Link2, CheckCircle2, Loader2 } from 'lucide-react';
-import { VERTICAL_LIST } from '../../server/src/playbooks/index.js';
 
-// Import from server - in a real app this would be a shared package
-// For now we'll define it here
 const verticals = [
   { value: 'salon', label: 'Salons & Beauty Studios' },
   { value: 'gym', label: 'Gyms & Fitness Studios' },
@@ -38,6 +36,7 @@ const integrations = [
 ];
 
 export default function Settings() {
+  const { business: authBusiness } = useAuth();
   const [activeTab, setActiveTab] = useState('business');
   const [currentPlan, setCurrentPlan] = useState('growth');
   const [intStates, setIntStates] = useState(integrations.map(i => i.connected));
@@ -47,22 +46,20 @@ export default function Settings() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const loadBusiness = async () => {
-      try {
-        const data = await entities.Business.list();
-        if (data.length > 0) {
-          setBusiness(data[0]);
-        } else {
-          setBusiness({ name: '', city: '', phone: '', website: '', description: '', type: 'salon' });
-        }
-      } catch (error) {
-        console.error('Failed to load business:', error);
-        setBusiness({ name: '', city: '', phone: '', website: '', description: '', type: 'salon' });
-      }
+    // Use business from auth if available
+    if (authBusiness) {
+      setBusiness({
+        _id: authBusiness.id,
+        name: authBusiness.name || '',
+        city: authBusiness.city || '',
+        phone: authBusiness.phone || '',
+        website: authBusiness.website || '',
+        description: authBusiness.description || '',
+        type: authBusiness.type || 'salon'
+      });
       setLoading(false);
-    };
-    loadBusiness();
-  }, []);
+    }
+  }, [authBusiness]);
 
   const saveBusiness = async () => {
     if (!business || !business._id) return;

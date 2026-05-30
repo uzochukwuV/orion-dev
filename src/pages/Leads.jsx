@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { entities, apiPost } from '@/api/entities';
+import { useAuth } from '@/lib/useOrionAuth';
 import { Plus, Users, Loader2, Sparkles } from 'lucide-react';
 import LeadForm from '../components/leads/LeadForm';
 
@@ -15,6 +16,7 @@ const statusColors = {
 const stages = ['new', 'contacted', 'qualified', 'proposal_sent', 'won', 'lost'];
 
 export default function Leads() {
+  const { business } = useAuth();
   const [leads, setLeads] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -30,11 +32,16 @@ export default function Leads() {
   useEffect(() => { load(); }, []);
 
   const sendAIFollowup = async (lead) => {
+    if (!business?.id) {
+      console.error('No business ID available');
+      return;
+    }
+    
     setFollowingUp(lead.id);
     try {
       const res = await apiPost('/api/agents/chat', {
-        message: `Write a brief, warm, personalized follow-up message for a local hair salon to send to ${lead.name} who is interested in ${lead.service_interest || 'our services'}. Keep it under 3 sentences, professional but friendly, with a clear call to action.`,
-        business_id: 'demo',
+        message: `Write a brief, warm, personalized follow-up message for ${business.name || 'our business'} to send to ${lead.name} who is interested in ${lead.service_interest || 'our services'}. Keep it under 3 sentences, professional but friendly, with a clear call to action.`,
+        business_id: business.id,
       });
       
       await entities.Lead.update(lead.id, { 
