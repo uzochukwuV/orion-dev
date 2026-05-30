@@ -1,6 +1,6 @@
 /**
  * Clerk Webhook Handler
- * 
+ *
  * Handles user.created, user.updated, user.deleted webhooks from Clerk
  * Keeps ClerkUser and Business records in sync with Clerk
  */
@@ -10,10 +10,23 @@ import { Webhook } from 'svix';
 import { ClerkUserModel } from '../db/models/ClerkUser';
 import { BusinessModel } from '../db/models/Business';
 
+// Clerk webhook event types
+interface ClerkEventData {
+  id: string;
+  email_addresses?: Array<{ email_address?: string }>;
+  first_name?: string;
+  last_name?: string;
+}
+
+interface ClerkEvent {
+  type: string;
+  data: ClerkEventData;
+}
+
 export async function handleClerkWebhook(req: Request, res: Response): Promise<void> {
   try {
     const wh = new Webhook(process.env.CLERK_WEBHOOK_SECRET || '');
-    const evt = wh.verify(JSON.stringify(req.body), req.headers as any);
+    const evt = wh.verify(JSON.stringify(req.body), req.headers as Record<string, string>) as ClerkEvent;
 
     console.log(`[Clerk Webhook] Event: ${evt.type}`);
 
@@ -85,8 +98,6 @@ export async function handleClerkWebhook(req: Request, res: Response): Promise<v
         // Delete business and related data
         if (user.business_id) {
           await BusinessModel.findByIdAndDelete(user.business_id);
-          // Note: Consider deleting related Lead, Campaign, etc records
-          // For now, we keep them for audit trail
           console.log(`[Clerk] Deleted business: ${user.business_id}`);
         }
 
