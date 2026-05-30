@@ -1,6 +1,5 @@
 {
   "name": "orion-dev",
-  "type": "module",
   "scripts": {
     "dev": "vercel dev"
   }
