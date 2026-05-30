@@ -7,8 +7,8 @@
 
 import { Request, Response } from 'express';
 import { Webhook } from 'svix';
-import { ClerkUserModel } from '../db/models/ClerkUser';
-import { BusinessModel } from '../db/models/Business';
+import { ClerkUserModel } from '../db/models/ClerkUser.js';
+import { BusinessModel } from '../db/models/Business.js';
 
 // Clerk webhook event types
 interface ClerkEventData {

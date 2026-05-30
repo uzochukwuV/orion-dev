@@ -1,16 +1,14 @@
 {
   "name": "server",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "npx tsx --test src/**/*.test.ts",
-    "dev": "tsx watch src/index.ts"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "main": "dist/index.js",
   "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "npx tsc -p tsconfig.build.json",
+    "start": "node dist/index.js",
+    "test": "npx tsx --test src/**/*.test.ts"
+  },
   "dependencies": {
     "@clerk/backend": "^3.4.14",
     "@langchain/core": "^0.3.43",
@@ -28,23 +26,22 @@
     "helmet": "^4.6.0",
     "jsonwebtoken": "^9.0.3",
     "langchain": "^0.3.27",
-    "mongoose": "^9.6.3",
-    "morgan": "^1.10.1",
-    "svix": "^1.94.0",
-    "ws": "^8.21.0"
+    "mongoose": "^8.9.5",
+    "morgan": "^1.10.0",
+    "svix": "^1.26.0",
+    "ws": "^8.18.0",
+    "zod": "^3.24.2"
   },
   "devDependencies": {
-    "@types/bcrypt": "^6.0.0",
-    "@types/cookie-parser": "^1.4.10",
-    "@types/cors": "^2.8.19",
-    "@types/express": "^5.0.6",
-    "@types/helmet": "^0.0.48",
-    "@types/jsonwebtoken": "^9.0.10",
-    "@types/morgan": "^1.9.10",
-    "@types/node": "^25.9.1",
-    "@types/ws": "^8.18.1",
-    "ts-node": "^10.9.2",
-    "tsx": "^4.22.3",
-    "typescript": "^6.0.3"
+    "@types/bcrypt": "^5.0.2",
+    "@types/cookie-parser": "^1.4.7",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.0",
+    "@types/jsonwebtoken": "^9.0.9",
+    "@types/morgan": "^1.9.9",
+    "@types/node": "^22.0.0",
+    "@types/ws": "^8.5.13",
+    "@vercel/node": "^4.0.0",
+    "typescript": "^5.7.2"
   }
 }
