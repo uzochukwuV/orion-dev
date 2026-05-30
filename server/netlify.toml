@@ -1,55 +1,16 @@
-functionsDirectory = "/opt/build/repo/server/netlify/functions"
-functionsDirectoryOrigin = "config-v1"
-redirectsOrigin = "config"
-plugins = []
-headers = []
-
 [build]
-publish = "/opt/build/repo/server/dist"
-publishOrigin = "config"
-commandOrigin = "config"
-base = "/opt/build/repo/server"
-command = "npm install && npm run build"
-functions = "/opt/build/repo/server/netlify/functions"
-
-  [build.environment]
-
-  [build.processing]
-
-    [build.processing.css]
-
-    [build.processing.html]
-
-    [build.processing.images]
-
-    [build.processing.js]
-
-  [build.services]
-
-[functions]
-
-  [functions."*"]
+  command = "npm install && npm run build"
+  functions = "netlify/functions"
+  publish = "dist"
 
 [[redirects]]
-from = "/api/*"
-to = "/.netlify/functions/api"
-status = 200
-force = true
-
-  [redirects.query]
-
-  [redirects.conditions]
-
-  [redirects.headers]
+  from = "/api/*"
+  to = "/.netlify/functions/api"
+  status = 200
+  force = true
 
 [[redirects]]
-from = "/health"
-to = "/.netlify/functions/api"
-status = 200
-force = true
-
-  [redirects.query]
-
-  [redirects.conditions]
-
-  [redirects.headers]
+  from = "/health"
+  to = "/.netlify/functions/api"
+  status = 200
+  force = true
