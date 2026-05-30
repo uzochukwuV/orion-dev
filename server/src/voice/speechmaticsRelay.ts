@@ -21,12 +21,12 @@
 
 import { WebSocketServer, WebSocket } from 'ws';
 import { Server as HTTPServer } from 'http';
-import { RealtimeClient } from '@speechmatics/real-time-client';
+type RealtimeClientType = any;
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
 interface VoiceClientState {
-  speechmaticsClient: RealtimeClient | null;
+  speechmaticsClient: RealtimeClientType | null;
   isConnected: boolean;
   sessionId: string;
   businessId: string;
@@ -79,7 +79,7 @@ export function setupVoiceWebSocket(
 
   const wss = new WebSocketServer({ server: httpServer, path });
 
-  wss.on('connection', async (ws: WebSocket, req) => {
+  wss.on('connection', async (ws: WebSocket, req: any) => {
     const clientId = Math.random().toString(36).substring(7);
     const sessionId = req.url?.split('?session=')[1] || clientId;
     const businessId = req.url?.split('&business=')[1] || req.url?.split('?business=')[1] || 'demo';
@@ -221,7 +221,7 @@ async function initSpeechmaticsClient(
   ws: WebSocket,
   apiKey: string
 ): Promise<void> {
-  const client = new RealtimeClient({
+  const client = new RealtimeClientType({
     apiKey,
     ssl: true,
   });
@@ -229,7 +229,7 @@ async function initSpeechmaticsClient(
   clientState.speechmaticsClient = client;
 
   // Handle Speechmatics events
-  client.on('error', (error: Error) => {
+  client.on('error', (error: any) => {
     console.error(`[Voice] Speechmatics error: ${error.message}`);
     sendTranscript(ws, {
       type: 'error',
