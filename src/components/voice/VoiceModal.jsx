@@ -12,11 +12,15 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { Mic, Square, X, Loader2, Volume2, Bot } from 'lucide-react';
 import { useAuth } from '@/lib/useOrionAuth';
 
-export default function VoiceModal({ isOpen, onClose, onTranscript }) {
+const API_URL = import.meta.env?.VITE_API_URL || 'http://localhost:3001';
+const WS_URL = API_URL.replace('http', 'ws') + '/ws/voice';
+
+export default function VoiceModal({ open, onClose, onTranscript }) {
   const { business } = useAuth();
   const [transcript, setTranscript] = useState('');
   const [partialTranscript, setPartialTranscript] = useState('');
   const [connecting, setConnecting] = useState(false);
+  const [recording, setRecording] = useState(false);
   const [error, setError] = useState(null);
   const [confidence, setConfidence] = useState(0);
   const [agentThinking, setAgentThinking] = useState(false);
@@ -116,7 +120,7 @@ export default function VoiceModal({ isOpen, onClose, onTranscript }) {
       mediaRecorderRef.current = mediaRecorder;
 
       // Connect to WebSocket relay
-      const wsUrl = `ws://localhost:3001/ws/voice?session=${business?.id || 'demo'}&business=${business?.id || 'demo'}`;
+      const wsUrl = `${WS_URL}?session=${business?.id || 'demo'}&business=${business?.id || 'demo'}`;
       const ws = new WebSocket(wsUrl);
       wsRef.current = ws;
 
@@ -241,7 +245,7 @@ export default function VoiceModal({ isOpen, onClose, onTranscript }) {
     }
   };
 
-  if (!isOpen) return null;
+  if (!open) return null;
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">

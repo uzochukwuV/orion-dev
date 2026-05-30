@@ -28,11 +28,34 @@ export default function StepBusiness({ onNext, onBack }) {
     if (subStep === 1 && category) { setSubStep(2); return; }
     if (subStep === 2) {
       setLoading(true);
-      const business = await entities.Business.create({
-        name, type: category, city: location,
-        description: service, onboarding_complete: true, plan_status: 'trialing'
-      });
-      onNext({ businessName: name, category, location, service, businessId: business._id || business.id });
+      try {
+        // Get user's email from auth context or localStorage
+        const storedToken = localStorage.getItem('orion_token');
+        let userEmail = '';
+        
+        if (storedToken) {
+          try {
+            const payload = JSON.parse(atob(storedToken.split('.')[1]));
+            userEmail = payload.email || '';
+          } catch (e) {
+            console.error('Failed to parse token:', e);
+          }
+        }
+        
+        const business = await entities.Business.create({
+          name, 
+          type: category, 
+          city: location,
+          owner_email: userEmail,
+          description: service, 
+          onboarding_complete: true, 
+          plan_status: 'trialing'
+        });
+        onNext({ businessName: name, category, location, service, businessId: business._id || business.id });
+      } catch (error) {
+        console.error('Failed to create business:', error);
+        alert('Failed to set up business. Please try again.');
+      }
       setLoading(false);
     }
   };

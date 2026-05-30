@@ -33,7 +33,7 @@ function AuthLoading() {
 
 // Wrapper for protected routes that uses our auth
 function ProtectedRouteContent({ children }) {
-  const { isAuthenticated, loading } = useAuth()
+  const { isAuthenticated, loading, business } = useAuth()
 
   if (loading) {
     return <AuthLoading />
@@ -41,6 +41,11 @@ function ProtectedRouteContent({ children }) {
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />
+  }
+
+  // Redirect to onboarding if business onboarding is not complete
+  if (business && !business.onboarding_complete) {
+    return <Navigate to="/onboarding" replace />
   }
 
   return children

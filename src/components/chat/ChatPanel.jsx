@@ -7,7 +7,7 @@ import { apiPost } from '@/api/entities';
 import { useAuth } from '@/lib/useOrionAuth';
 import { Send, Loader2, X } from 'lucide-react';
 
-export default function ChatPanel({ isOpen, onClose }) {
+export default function ChatPanel({ open, onClose }) {
   const { business } = useAuth();
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
@@ -42,6 +42,17 @@ export default function ChatPanel({ isOpen, onClose }) {
         session_id: sessionId,
       });
 
+      // Check if AI is not configured
+      if (res.reply && res.reply.includes && res.reply.includes('not configured')) {
+        setMessages(prev => [...prev, { 
+          role: 'system', 
+          content: 'AI chat is not available on this server. Please configure AIMLAPI_KEY or TOKENROUTER_API_KEY.', 
+          timestamp: new Date().toISOString() 
+        }]);
+        setLoading(false);
+        return;
+      }
+
       if (res.session_id && !sessionId) {
         setSessionId(res.session_id);
       }
@@ -54,7 +65,7 @@ export default function ChatPanel({ isOpen, onClose }) {
     setLoading(false);
   };
 
-  if (!isOpen) return null;
+  if (!open) return null;
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-end z-50">
