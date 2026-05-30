@@ -1,6 +1,6 @@
 # Netlify configuration
 [build]
-  command = "npm run build"
+  command = "cd server && npm run build"
   publish = "dist"
   functions = "netlify/functions"
 
