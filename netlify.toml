@@ -9,13 +9,13 @@
 # API and health check - route to serverless function
 [[redirects]]
   from = "/health"
-  to = "/.netlify/functions/server"
+  to = "/.netlify/functions/api"
   status = 200
   force = true
 
 [[redirects]]
   from = "/api/*"
-  to = "/.netlify/functions/server"
+  to = "/.netlify/functions/api"
   status = 200
   force = true
 
